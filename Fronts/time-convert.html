@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🕒 时间转换 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .container {
+            max-width: 750px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #f5576c; }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 28px 30px 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .card h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        .card .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+        .input-group input,
+        .input-group select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: #f5576c;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .result-box {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 16px 20px;
+            border: 2px dashed #e2e8f0;
+            margin-top: 8px;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .result-box .value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+        .result-box .label {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .status-msg {
+            margin-top: 12px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8fafc;
+            color: #64748b;
+        }
+        .status-msg.error {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+        .status-msg.success {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+
+        .mode-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .mode-tabs button {
+            padding: 8px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 30px;
+            background: #fff;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .mode-tabs button:hover {
+            border-color: #f5576c;
+            color: #f5576c;
+        }
+        .mode-tabs button.active {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .timestamp-input {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .timestamp-input input {
+            flex: 1;
+        }
+        .timestamp-input .btn-now {
+            padding: 10px 20px;
+            background: #1a1a2e;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .timestamp-input .btn-now:hover {
+            background: #2d2d44;
+        }
+
+        .btn-retry {
+            padding: 8px 24px;
+            background: #1a1a2e;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .btn-retry:hover {
+            background: #2d2d44;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .action-row .hint {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 640px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+            .timestamp-input {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🕒</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">时间转换</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+        <span style="color: #cbd5e1; margin: 0 8px; font-size: 14px;">|</span>
+        <a href="convert.html" class="back-link">← 返回转换工具</a>
+
+        <div class="card">
+            <h2>🕒 时间转换</h2>
+            <p class="desc" id="modeDesc">时间戳 ↔ 日期时间 互转</p>
+
+            <!-- 模式切换 -->
+            <div class="mode-tabs" id="modeTabs">
+                <button class="active" data-mode="timestamp">时间戳 → 日期时间</button>
+                <button data-mode="datetime">日期时间 → 时间戳</button>
+                <button data-mode="timezone">时区转换</button>
+            </div>
+
+            <!-- ====== 模式1：时间戳 → 日期时间 ====== -->
+            <div id="modeTimestamp" class="mode-panel">
+                <div class="input-group">
+                    <label for="tsInput">时间戳（秒）</label>
+                    <div class="timestamp-input">
+                        <input type="number" id="tsInput" value="1718764800" step="1" />
+                        <button class="btn-now" id="tsNowBtn">📌 当前时间</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>日期时间</label>
+                        <div class="result-box" id="tsResult">
+                            <span class="value" id="tsResultValue">—</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>UTC 时间</label>
+                        <div class="result-box" id="tsUtcResult">
+                            <span class="value" id="tsUtcResultValue">—</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-row">
+                    <button class="btn-retry" id="tsRetryBtn">🔄 重新转换</button>
+                    <span class="hint">如果转换失败，点击重试</span>
+                </div>
+            </div>
+
+            <!-- ====== 模式2：日期时间 → 时间戳 ====== -->
+            <div id="modeDatetime" class="mode-panel" style="display:none;">
+                <div class="input-group">
+                    <label for="dtInput">日期时间</label>
+                    <input type="datetime-local" id="dtInput" />
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>时间戳（秒）</label>
+                        <div class="result-box" id="dtResult">
+                            <span class="value" id="dtResultValue">—</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>时间戳（毫秒）</label>
+                        <div class="result-box" id="dtMsResult">
+                            <span class="value" id="dtMsResultValue">—</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-row">
+                    <button class="btn-retry" id="dtRetryBtn">🔄 重新转换</button>
+                    <span class="hint">如果转换失败，点击重试</span>
+                </div>
+            </div>
+
+            <!-- ====== 模式3：时区转换 ====== -->
+            <div id="modeTimezone" class="mode-panel" style="display:none;">
+                <div class="row">
+                    <div class="input-group">
+                        <label for="tzFrom">从时区</label>
+                        <select id="tzFrom">
+                            <option value="Asia/Shanghai">Asia/Shanghai (CST)</option>
+                            <option value="UTC">UTC</option>
+                            <option value="America/New_York">America/New_York (EST)</option>
+                            <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                            <option value="Europe/London">Europe/London (GMT)</option>
+                            <option value="Europe/Paris">Europe/Paris (CET)</option>
+                            <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                            <option value="Australia/Sydney">Australia/Sydney (AEDT)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="tzTo">到时区</label>
+                        <select id="tzTo">
+                            <option value="UTC">UTC</option>
+                            <option value="Asia/Shanghai" selected>Asia/Shanghai (CST)</option>
+                            <option value="America/New_York">America/New_York (EST)</option>
+                            <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                            <option value="Europe/London">Europe/London (GMT)</option>
+                            <option value="Europe/Paris">Europe/Paris (CET)</option>
+                            <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                            <option value="Australia/Sydney">Australia/Sydney (AEDT)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="tzInput">日期时间</label>
+                    <input type="datetime-local" id="tzInput" />
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>转换结果</label>
+                        <div class="result-box" id="tzResult">
+                            <span class="value" id="tzResultValue">—</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-row">
+                    <button class="btn-retry" id="tzRetryBtn">🔄 重新转换</button>
+                    <span class="hint">如果转换失败，点击重试</span>
+                </div>
+            </div>
+
+            <div class="status-msg" id="statusMsg">📌 输入数值，自动转换</div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 数据由后端 API 处理</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        // ============================================
+        // DOM 引用
+        // ============================================
+        const modeTabs = document.querySelectorAll('.mode-tabs button');
+        const modePanels = {
+            timestamp: document.getElementById('modeTimestamp'),
+            datetime: document.getElementById('modeDatetime'),
+            timezone: document.getElementById('modeTimezone')
+        };
+        const modeDesc = document.getElementById('modeDesc');
+
+        // 模式1
+        const tsInput = document.getElementById('tsInput');
+        const tsResultValue = document.getElementById('tsResultValue');
+        const tsUtcResultValue = document.getElementById('tsUtcResultValue');
+        const tsNowBtn = document.getElementById('tsNowBtn');
+        const tsRetryBtn = document.getElementById('tsRetryBtn');
+
+        // 模式2
+        const dtInput = document.getElementById('dtInput');
+        const dtResultValue = document.getElementById('dtResultValue');
+        const dtMsResultValue = document.getElementById('dtMsResultValue');
+        const dtRetryBtn = document.getElementById('dtRetryBtn');
+
+        // 模式3
+        const tzFrom = document.getElementById('tzFrom');
+        const tzTo = document.getElementById('tzTo');
+        const tzInput = document.getElementById('tzInput');
+        const tzResultValue = document.getElementById('tzResultValue');
+        const tzRetryBtn = document.getElementById('tzRetryBtn');
+
+        const statusMsg = document.getElementById('statusMsg');
+
+        // ============================================
+        // 工具函数
+        // ============================================
+        function showStatus(msg, type) {
+            statusMsg.textContent = msg;
+            statusMsg.className = 'status-msg';
+            if (type) statusMsg.classList.add(type);
+        }
+
+        function getActiveMode() {
+            const active = document.querySelector('.mode-tabs .active');
+            return active ? active.dataset.mode : 'timestamp';
+        }
+
+        // ============================================
+        // 模式切换
+        // ============================================
+        modeTabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeTabs.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const mode = btn.dataset.mode;
+                Object.keys(modePanels).forEach(key => {
+                    modePanels[key].style.display = key === mode ? 'block' : 'none';
+                });
+
+                const modeNames = {
+                    timestamp: '时间戳 → 日期时间',
+                    datetime: '日期时间 → 时间戳',
+                    timezone: '时区转换'
+                };
+                modeDesc.textContent = modeNames[mode] || '';
+
+                setTimeout(convert, 50);
+            });
+        });
+
+        // ============================================
+        // 核心：调用后端 API
+        // ============================================
+        async function convert() {
+            const mode = getActiveMode();
+
+            try {
+                let response, data;
+
+                if (mode === 'timestamp') {
+                    const value = parseFloat(tsInput.value);
+                    if (isNaN(value) || value < 0) {
+                        tsResultValue.textContent = '请输入有效时间戳';
+                        tsUtcResultValue.textContent = '';
+                        showStatus('请输入有效时间戳');
+                        return;
+                    }
+
+                    data = await apiRequest('/api/convert/time', {
+                        method: 'POST',
+                        data: { mode: 'timestamp', value: value }
+                    });
+
+                    if (data.success) {
+                        tsResultValue.textContent = data.data.datetime;
+                        tsUtcResultValue.textContent = data.data.utc;
+                        showStatus(`✅ 时间戳 ${value} 转换成功`, 'success');
+                    } else {
+                        tsResultValue.textContent = '❌';
+                        tsUtcResultValue.textContent = '';
+                        showStatus(`⚠️ ${data.error || '转换失败，请稍后重试'}`, 'error');
+                    }
+                    return;
+                }
+
+                if (mode === 'datetime') {
+                    const dt = dtInput.value;
+                    if (!dt) {
+                        dtResultValue.textContent = '请选择日期时间';
+                        dtMsResultValue.textContent = '';
+                        showStatus('请选择日期时间');
+                        return;
+                    }
+
+                    data = await apiRequest('/api/convert/time', {
+                        method: 'POST',
+                        data: { mode: 'datetime', value: dt }
+                    });
+
+                    if (data.success) {
+                        dtResultValue.textContent = data.data.timestamp;
+                        dtMsResultValue.textContent = data.data.timestampMs;
+                        showStatus('✅ 日期时间转换成功', 'success');
+                    } else {
+                        dtResultValue.textContent = '❌';
+                        dtMsResultValue.textContent = '';
+                        showStatus(`⚠️ ${data.error || '转换失败，请稍后重试'}`, 'error');
+                    }
+                    return;
+                }
+
+                if (mode === 'timezone') {
+                    const dt = tzInput.value;
+                    if (!dt) {
+                        tzResultValue.textContent = '请选择日期时间';
+                        showStatus('请选择日期时间');
+                        return;
+                    }
+
+                    data = await apiRequest('/api/convert/time', {
+                        method: 'POST',
+                        data: {
+                            mode: 'timezone',
+                            from: tzFrom.value,
+                            to: tzTo.value,
+                            value: dt
+                        }
+                    });
+
+                    if (data.success) {
+                        tzResultValue.textContent = data.data.result;
+                        showStatus(`✅ 时区转换成功`, 'success');
+                    } else {
+                        tzResultValue.textContent = '❌';
+                        showStatus(`⚠️ ${data.error || '转换失败，请稍后重试'}`, 'error');
+                    }
+                    return;
+                }
+
+            } catch (error) {
+                console.error('❌ 请求后端失败:', error);
+                showStatus('⚠️ 转换失败，请稍后重试', 'error');
+            }
+        }
+
+        // ============================================
+        // 重试按钮
+        // ============================================
+        tsRetryBtn.addEventListener('click', convert);
+        dtRetryBtn.addEventListener('click', convert);
+        tzRetryBtn.addEventListener('click', convert);
+
+        // ============================================
+        // 自动转换事件
+        // ============================================
+        tsInput.addEventListener('input', convert);
+        dtInput.addEventListener('change', convert);
+        tzInput.addEventListener('change', convert);
+        tzFrom.addEventListener('change', convert);
+        tzTo.addEventListener('change', convert);
+
+        tsNowBtn.addEventListener('click', () => {
+            tsInput.value = Math.floor(Date.now() / 1000);
+            convert();
+        });
+
+        // ============================================
+        // 初始化
+        // ============================================
+        const now = new Date();
+        const localStr = now.toISOString().slice(0, 16);
+        dtInput.value = localStr;
+        tzInput.value = localStr;
+        tsInput.value = Math.floor(Date.now() / 1000);
+
+        setTimeout(convert, 100);
+
+        console.log('🕒 时间转换已加载（API 驱动）！');
+    </script>
+</body>
+</html>

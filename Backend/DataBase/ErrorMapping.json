@@ -1,0 +1,32 @@
+{
+  "10001": {
+    "code": 10001,
+    "message": "参数数量错误，需要3个参数",
+    "description": "C++程序接收到的参数数量不是3个"
+  },
+  "10002": {
+    "code": 10002,
+    "message": "无效数字（包含非法字符）",
+    "description": "输入的数字包含了非数字字符"
+  },
+  "10003": {
+    "code": 10003,
+    "message": "无效数字（超出范围）",
+    "description": "输入的数字超出了 unsigned long long 的范围"
+  },
+  "10004": {
+    "code": 10004,
+    "message": "进制范围错误，从进制必须为2~36",
+    "description": "fromBase 不在 2~36 范围内"
+  },
+  "10005": {
+    "code": 10005,
+    "message": "进制范围错误，到进制必须为2~36",
+    "description": "toBase 不在 2~36 范围内"
+  },
+  "10006": {
+    "code": 10006,
+    "message": "数字不能为空",
+    "description": "输入的数字字符串为空"
+  }
+}

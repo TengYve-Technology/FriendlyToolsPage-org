@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔐 AES加解密 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .tool-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #f5576c; }
+
+        .tool-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .tool-box h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .tool-box .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .mode-switch {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 40px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #64748b;
+        }
+        .mode-btn.active {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(245, 87, 108, 0.3);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+        .input-group textarea,
+        .input-group input {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .input-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            line-height: 1.6;
+        }
+        .input-group input:focus,
+        .input-group textarea:focus {
+            border-color: #f5576c;
+        }
+
+        .key-group {
+            position: relative;
+        }
+        .key-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #94a3b8;
+            padding: 4px;
+        }
+        .key-toggle:hover {
+            color: #f5576c;
+        }
+
+        .btn-action {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 4px;
+        }
+        .btn-action:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+        }
+        .btn-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .result-section h4 {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .result-box {
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 80px;
+        }
+        .result-text {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #1a1a2e;
+            word-break: break-all;
+            line-height: 1.6;
+            user-select: all;
+            white-space: pre-wrap;
+        }
+        .result-text.placeholder {
+            color: #94a3b8;
+            font-style: normal;
+        }
+        .btn-copy {
+            padding: 6px 14px;
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-copy:hover {
+            border-color: #f5576c;
+            color: #f5576c;
+        }
+        .btn-copy.copied {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #059669;
+        }
+
+        .btn-swap {
+            display: block;
+            margin: 12px auto 0;
+            padding: 8px 20px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.3s;
+        }
+        .btn-swap:hover {
+            background: #e2e8f0;
+            color: #f5576c;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🔐</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">AES加解密</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+
+        <div class="tool-box">
+            <h2>🔐 AES 加解密</h2>
+            <p class="desc">使用 AES 算法对文本进行加密和解密</p>
+
+            <div class="mode-switch">
+                <button class="mode-btn active" data-mode="encrypt" id="btnEncryptMode">🔒 加密</button>
+                <button class="mode-btn" data-mode="decrypt" id="btnDecryptMode">🔓 解密</button>
+            </div>
+
+            <div class="input-group">
+                <label for="textInput" id="inputLabel">输入文本</label>
+                <textarea id="textInput" placeholder="请输入要加密的文本..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label for="keyInput">密钥</label>
+                <div class="key-group">
+                    <input type="password" id="keyInput" placeholder="请输入密钥..." />
+                    <button class="key-toggle" id="keyToggle" title="显示/隐藏密钥">👁️</button>
+                </div>
+            </div>
+
+            <button class="btn-action" id="btnAction">🔒 加密</button>
+
+            <button class="btn-swap" id="btnSwap" style="display: none;">↕️ 结果作为输入</button>
+
+            <div class="result-section">
+                <h4>
+                    <span id="resultLabel">📤 加密结果</span>
+                    <button class="btn-copy" id="btnCopy" style="display: none;">📋 复制</button>
+                </h4>
+                <div class="result-box">
+                    <div class="result-text placeholder" id="resultText">等待处理...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        let currentMode = 'encrypt';
+
+        const btnEncryptMode = document.getElementById('btnEncryptMode');
+        const btnDecryptMode = document.getElementById('btnDecryptMode');
+        const textInput = document.getElementById('textInput');
+        const keyInput = document.getElementById('keyInput');
+        const keyToggle = document.getElementById('keyToggle');
+        const btnAction = document.getElementById('btnAction');
+        const btnCopy = document.getElementById('btnCopy');
+        const btnSwap = document.getElementById('btnSwap');
+        const resultText = document.getElementById('resultText');
+        const inputLabel = document.getElementById('inputLabel');
+        const resultLabel = document.getElementById('resultLabel');
+
+        function setMode(mode) {
+            currentMode = mode;
+
+            if (mode === 'encrypt') {
+                btnEncryptMode.classList.add('active');
+                btnDecryptMode.classList.remove('active');
+                btnAction.textContent = '🔒 加密';
+                inputLabel.textContent = '输入文本';
+                textInput.placeholder = '请输入要加密的文本...';
+                resultLabel.innerHTML = '📤 加密结果';
+            } else {
+                btnDecryptMode.classList.add('active');
+                btnEncryptMode.classList.remove('active');
+                btnAction.textContent = '🔓 解密';
+                inputLabel.textContent = '输入密文';
+                textInput.placeholder = '请输入要解密的密文...';
+                resultLabel.innerHTML = '📥 解密结果';
+            }
+        }
+
+        btnEncryptMode.addEventListener('click', () => setMode('encrypt'));
+        btnDecryptMode.addEventListener('click', () => setMode('decrypt'));
+
+        keyToggle.addEventListener('click', () => {
+            if (keyInput.type === 'password') {
+                keyInput.type = 'text';
+                keyToggle.textContent = '🙈';
+            } else {
+                keyInput.type = 'password';
+                keyToggle.textContent = '👁️';
+            }
+        });
+
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.textContent;
+                btn.textContent = '✓ 已复制';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                const originalText = btn.textContent;
+                btn.textContent = '✓ 已复制';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        let currentResult = '';
+
+        async function processAES() {
+            const text = textInput.value;
+            const key = keyInput.value;
+
+            if (!text) {
+                resultText.textContent = currentMode === 'encrypt' ? '请输入要加密的文本' : '请输入要解密的密文';
+                resultText.classList.add('placeholder');
+                btnCopy.style.display = 'none';
+                btnSwap.style.display = 'none';
+                return;
+            }
+
+            if (!key) {
+                resultText.textContent = '请输入密钥';
+                resultText.classList.add('placeholder');
+                btnCopy.style.display = 'none';
+                btnSwap.style.display = 'none';
+                return;
+            }
+
+            btnAction.disabled = true;
+            resultText.textContent = '⏳ 处理中...';
+            resultText.classList.add('placeholder');
+            btnCopy.style.display = 'none';
+            btnSwap.style.display = 'none';
+
+            try {
+                const result = await apiRequest('/api/security/aes', {
+                    method: 'POST',
+                    data: { text, key },
+                    options: { mode: currentMode }
+                });
+
+                if (result.success) {
+                    currentResult = result.data.result;
+                    resultText.textContent = currentResult;
+                    resultText.classList.remove('placeholder');
+                    btnCopy.style.display = 'inline-block';
+                    btnSwap.style.display = 'block';
+                } else {
+                    resultText.textContent = `❌ ${result.error}`;
+                    resultText.classList.add('placeholder');
+                }
+            } catch (err) {
+                console.error('请求后端失败:', err);
+                resultText.textContent = '❌ 无法连接到后端服务';
+                resultText.classList.add('placeholder');
+            } finally {
+                btnAction.disabled = false;
+            }
+        }
+
+        btnAction.addEventListener('click', processAES);
+
+        btnCopy.addEventListener('click', () => {
+            if (currentResult) {
+                copyToClipboard(currentResult, btnCopy);
+            }
+        });
+
+        btnSwap.addEventListener('click', () => {
+            textInput.value = currentResult;
+            if (currentMode === 'encrypt') {
+                setMode('decrypt');
+            } else {
+                setMode('encrypt');
+            }
+            currentResult = '';
+            resultText.textContent = '等待处理...';
+            resultText.classList.add('placeholder');
+            btnCopy.style.display = 'none';
+            btnSwap.style.display = 'none';
+        });
+
+        textInput.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                processAES();
+            }
+        });
+
+        keyInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                processAES();
+            }
+        });
+
+        console.log('🔐 AES加解密工具已加载！');
+    </script>
+</body>
+</html>

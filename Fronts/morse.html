@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📡 摩斯电码转换 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .convert-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #f5576c; }
+
+        .convert-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .convert-box h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .convert-box .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            background: #fff;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #64748b;
+        }
+        .mode-btn.active {
+            border-color: #f5576c;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+        }
+        .mode-btn:hover:not(.active) {
+            border-color: #f093fb;
+            color: #f5576c;
+        }
+
+        .convert-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+        .input-group textarea {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            resize: vertical;
+            min-height: 140px;
+            line-height: 1.6;
+        }
+        .input-group textarea:focus {
+            border-color: #f5576c;
+        }
+
+        .btn-convert {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .btn-convert:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+        }
+        .btn-convert:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-box {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            min-height: 140px;
+            border: 2px dashed #e2e8f0;
+            color: #1a1a2e;
+            word-break: break-all;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .result-box .placeholder {
+            color: #94a3b8;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .tips {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        .tips h4 {
+            font-size: 14px;
+            color: #1e40af;
+            margin-bottom: 6px;
+        }
+        .tips p {
+            font-size: 13px;
+            color: #3b82f6;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 640px) {
+            .convert-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">📡</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">摩斯电码</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="convert-container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+
+        <div class="convert-box">
+            <h2>📡 摩斯电码转换</h2>
+            <p class="desc">在文本与摩斯电码之间快速转换 · 支持编码和解码</p>
+
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="btnEncode">📝 文本 → 摩斯码</button>
+                <button class="mode-btn" id="btnDecode">🔊 摩斯码 → 文本</button>
+            </div>
+
+            <div class="convert-row">
+                <div class="input-group">
+                    <label for="inputText" id="inputLabel">输入文本</label>
+                    <textarea id="inputText" placeholder="请输入要转换的文本..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="outputText" id="outputLabel">转换结果</label>
+                    <div class="result-box" id="outputText">
+                        <span class="placeholder">等待转换...</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-convert" id="btnConvert">🔄 立即转换</button>
+
+            <div class="tips">
+                <h4>💡 使用提示</h4>
+                <p>
+                    • 摩斯电码使用点(.)和划(-)表示，字母之间用空格分隔，单词之间用 / 分隔<br>
+                    • 支持英文字母、数字和常用符号<br>
+                    • 解码时请确保输入格式正确，点和划之间不要有空格
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        const inputText = document.getElementById('inputText');
+        const outputText = document.getElementById('outputText');
+        const btnConvert = document.getElementById('btnConvert');
+        const btnEncode = document.getElementById('btnEncode');
+        const btnDecode = document.getElementById('btnDecode');
+        const inputLabel = document.getElementById('inputLabel');
+        const outputLabel = document.getElementById('outputLabel');
+
+        let currentMode = 'encode';
+
+        function setMode(mode) {
+            currentMode = mode;
+            if (mode === 'encode') {
+                btnEncode.classList.add('active');
+                btnDecode.classList.remove('active');
+                inputLabel.textContent = '输入文本';
+                outputLabel.textContent = '摩斯电码';
+                inputText.placeholder = '请输入要转换的文本...';
+            } else {
+                btnDecode.classList.add('active');
+                btnEncode.classList.remove('active');
+                inputLabel.textContent = '输入摩斯码';
+                outputLabel.textContent = '解码文本';
+                inputText.placeholder = '请输入摩斯电码（如：.... . .-.. .-.. ---）...';
+            }
+            outputText.innerHTML = '<span class="placeholder">等待转换...</span>';
+        }
+
+        async function convert() {
+            const text = inputText.value.trim();
+
+            if (!text) {
+                outputText.innerHTML = '<span class="placeholder">' + (currentMode === 'encode' ? '请输入文本' : '请输入摩斯码') + '</span>';
+                return;
+            }
+
+            btnConvert.disabled = true;
+            outputText.innerHTML = '<span style="color: #f5576c;">⏳ 转换中...</span>';
+
+            try {
+                const result = await apiRequest('/api/fun/morse', {
+                    method: 'POST',
+                    data: { text: text },
+                    options: { mode: currentMode }
+                });
+
+                if (result.success) {
+                    outputText.textContent = result.data.result;
+                } else {
+                    outputText.innerHTML = `<span style="color:#ef4444;">❌ ${result.error || '转换失败'}</span>`;
+                }
+            } catch (error) {
+                console.error('请求后端失败:', error);
+                outputText.innerHTML = '<span style="color:#ef4444;">❌ 无法连接到后端服务</span>';
+            } finally {
+                btnConvert.disabled = false;
+            }
+        }
+
+        btnEncode.addEventListener('click', () => setMode('encode'));
+        btnDecode.addEventListener('click', () => setMode('decode'));
+        btnConvert.addEventListener('click', convert);
+        inputText.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) convert();
+        });
+
+        inputText.value = 'Hello World';
+        convert();
+
+        console.log('📡 摩斯电码转换已加载！');
+    </script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>👤 虚拟身份生成 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .convert-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #f5576c; }
+
+        .convert-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .convert-box h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .convert-box .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .options-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+        .input-group select,
+        .input-group input[type="number"] {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            background: #fff;
+            cursor: pointer;
+        }
+        .input-group select:focus,
+        .input-group input[type="number"]:focus {
+            border-color: #f5576c;
+        }
+
+        .btn-generate {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .btn-generate:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+        }
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .result-section h3 {
+            font-size: 16px;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .identity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .identity-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+            overflow: hidden;
+            transition: all 0.3s;
+            animation: slideUp 0.4s ease-out;
+        }
+        .identity-card:hover {
+            border-color: #f093fb;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+        @keyframes slideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .identity-header {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            padding: 20px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .identity-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        .identity-name {
+            flex: 1;
+        }
+        .identity-name .name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .identity-name .gender-age {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .identity-body {
+            padding: 16px 20px;
+        }
+        .info-row {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #64748b;
+            width: 70px;
+            flex-shrink: 0;
+        }
+        .info-value {
+            color: #1a1a2e;
+            flex: 1;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .copy-btn {
+            padding: 2px 8px;
+            font-size: 12px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 4px;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .copy-btn:hover {
+            background: #f093fb;
+            color: #fff;
+        }
+        .copy-btn.copied {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .empty-result {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px dashed #e2e8f0;
+        }
+        .empty-result .icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+
+        .error-text {
+            color: #ef4444;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .options-row {
+                grid-template-columns: 1fr;
+            }
+            .identity-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">👤</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">虚拟身份</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="convert-container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+
+        <div class="convert-box">
+            <h2>👤 虚拟身份生成</h2>
+            <p class="desc">一键生成虚拟身份信息 · 包含姓名、电话、邮箱等完整信息</p>
+
+            <div class="options-row">
+                <div class="input-group">
+                    <label for="genderSelect">性别</label>
+                    <select id="genderSelect">
+                        <option value="random">🎲 随机</option>
+                        <option value="male">👨 男</option>
+                        <option value="female">👩 女</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="countInput">生成数量</label>
+                    <input type="number" id="countInput" value="1" min="1" max="20" />
+                </div>
+                <div class="input-group" style="visibility: hidden;">
+                    <label>占位</label>
+                    <select><option>-</option></select>
+                </div>
+            </div>
+
+            <button class="btn-generate" id="btnGenerate">✨ 生成身份</button>
+
+            <div class="result-section" id="resultSection">
+                <h3>📋 生成结果</h3>
+                <div class="empty-result" id="emptyResult">
+                    <div class="icon">🎭</div>
+                    <p>点击"生成身份"按钮获取虚拟身份信息</p>
+                </div>
+                <div id="resultContent" style="display: none;">
+                    <div class="identity-grid" id="identityGrid"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        const genderSelect = document.getElementById('genderSelect');
+        const countInput = document.getElementById('countInput');
+        const btnGenerate = document.getElementById('btnGenerate');
+        const emptyResult = document.getElementById('emptyResult');
+        const resultContent = document.getElementById('resultContent');
+        const identityGrid = document.getElementById('identityGrid');
+
+        async function generate() {
+            const gender = genderSelect.value;
+            const count = parseInt(countInput.value) || 1;
+
+            if (count < 1) {
+                showError('生成数量至少为1');
+                return;
+            }
+            if (count > 20) {
+                showError('一次最多生成20个身份');
+                return;
+            }
+
+            btnGenerate.disabled = true;
+            btnGenerate.textContent = '⏳ 生成中...';
+
+            try {
+                const result = await apiRequest('/api/fun/identity', {
+                    method: 'POST',
+                    options: { count: count, gender: gender }
+                });
+
+                if (result.success) {
+                    showIdentities(result.data.identities);
+                } else {
+                    showError(result.error || '生成失败');
+                }
+            } catch (error) {
+                console.error('请求后端失败:', error);
+                showError('无法连接到后端服务');
+            } finally {
+                btnGenerate.disabled = false;
+                btnGenerate.textContent = '✨ 生成身份';
+            }
+        }
+
+        function showIdentities(identities) {
+            emptyResult.style.display = 'none';
+            resultContent.style.display = 'block';
+
+            identityGrid.innerHTML = '';
+            identities.forEach((identity, index) => {
+                const card = createIdentityCard(identity, index);
+                identityGrid.appendChild(card);
+            });
+        }
+
+        function createIdentityCard(identity, index) {
+            const card = document.createElement('div');
+            card.className = 'identity-card';
+            card.style.animationDelay = `${index * 0.08}s`;
+
+            const avatarIcon = identity.gender === 'male' ? '👨' : (identity.gender === 'female' ? '👩' : '🧑');
+            const genderText = identity.gender === 'male' ? '男' : (identity.gender === 'female' ? '女' : '未知');
+
+            card.innerHTML = `
+                <div class="identity-header">
+                    <div class="identity-avatar">${avatarIcon}</div>
+                    <div class="identity-name">
+                        <div class="name">${escapeHtml(identity.name)}</div>
+                        <div class="gender-age">${genderText} · ${identity.age}岁</div>
+                    </div>
+                </div>
+                <div class="identity-body">
+                    <div class="info-row">
+                        <span class="info-label">生日</span>
+                        <span class="info-value">${escapeHtml(identity.birthday)}<button class="copy-btn" data-text="${escapeHtml(identity.birthday)}">复制</button></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">手机</span>
+                        <span class="info-value">${escapeHtml(identity.phone)}<button class="copy-btn" data-text="${escapeHtml(identity.phone)}">复制</button></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">邮箱</span>
+                        <span class="info-value">${escapeHtml(identity.email)}<button class="copy-btn" data-text="${escapeHtml(identity.email)}">复制</button></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">身份证</span>
+                        <span class="info-value">${escapeHtml(identity.idCard)}<button class="copy-btn" data-text="${escapeHtml(identity.idCard)}">复制</button></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">城市</span>
+                        <span class="info-value">${escapeHtml(identity.city)}<button class="copy-btn" data-text="${escapeHtml(identity.city)}">复制</button></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">职业</span>
+                        <span class="info-value">${escapeHtml(identity.occupation)}<button class="copy-btn" data-text="${escapeHtml(identity.occupation)}">复制</button></span>
+                    </div>
+                </div>
+            `;
+
+            card.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => copyText(btn));
+            });
+
+            return card;
+        }
+
+        async function copyText(btn) {
+            const text = btn.getAttribute('data-text');
+            try {
+                await navigator.clipboard.writeText(text);
+                const originalText = btn.textContent;
+                btn.textContent = '已复制';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 1500);
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showError(message) {
+            emptyResult.style.display = 'none';
+            resultContent.style.display = 'block';
+            identityGrid.innerHTML = `<div class="error-text">❌ ${message}</div>`;
+        }
+
+        btnGenerate.addEventListener('click', generate);
+
+        console.log('👤 虚拟身份生成已加载！');
+    </script>
+</body>
+</html>

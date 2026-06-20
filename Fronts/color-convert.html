@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎨 颜色转换 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .convert-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #f5576c; }
+
+        .convert-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .convert-box h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .convert-box .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 120px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            border: 2px solid #e2e8f0;
+            transition: background 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .color-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-conic-gradient(#f1f5f9 0% 25%, #fff 0% 50%) 50% / 20px 20px;
+            z-index: 0;
+        }
+        .color-preview .color-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+            transition: background 0.3s;
+        }
+        .color-preview .color-value {
+            position: absolute;
+            bottom: 12px;
+            right: 16px;
+            z-index: 2;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+        .input-group input,
+        .input-group select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: #f5576c;
+        }
+        .input-group input[type="color"] {
+            height: 48px;
+            padding: 4px;
+            cursor: pointer;
+        }
+
+        .format-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 16px;
+        }
+        .swap-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            background: #fff;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+        }
+        .swap-btn:hover {
+            border-color: #f5576c;
+            background: #fef2f2;
+            transform: rotate(180deg);
+        }
+
+        .btn-convert {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .btn-convert:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+        }
+        .btn-convert:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .result-section h3 {
+            font-size: 16px;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+        }
+        .result-main {
+            text-align: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .result-main .label {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .result-main .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a2e;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+        .detail-item {
+            background: #fff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .detail-item .label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+        .detail-item .value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            font-family: 'Courier New', monospace;
+        }
+
+        .empty-result {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px dashed #e2e8f0;
+        }
+        .empty-result .icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .error-text {
+            color: #ef4444;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (max-width: 640px) {
+            .format-row {
+                grid-template-columns: 1fr;
+            }
+            .swap-btn {
+                justify-self: center;
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🎨</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">颜色转换</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="convert-container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+
+        <div class="convert-box">
+            <h2>🎨 颜色转换</h2>
+            <p class="desc">在 HEX · RGB · HSL 之间自由转换颜色值</p>
+
+            <div class="color-preview">
+                <div class="color-fill" id="colorFill" style="background: #ff0000;"></div>
+                <div class="color-value" id="colorValue">#FF0000</div>
+            </div>
+
+            <div class="input-group">
+                <label for="colorInput">颜色值</label>
+                <input type="text" id="colorInput" value="#ff0000" placeholder="输入颜色值，如 #ff0000 或 rgb(255,0,0)" />
+            </div>
+
+            <div class="format-row">
+                <div class="input-group">
+                    <label for="fromFormat">源格式</label>
+                    <select id="fromFormat">
+                        <option value="hex">HEX</option>
+                        <option value="rgb">RGB</option>
+                        <option value="hsl">HSL</option>
+                    </select>
+                </div>
+                <button class="swap-btn" id="swapBtn" title="交换格式">⇄</button>
+                <div class="input-group">
+                    <label for="toFormat">目标格式</label>
+                    <select id="toFormat">
+                        <option value="hex">HEX</option>
+                        <option value="rgb" selected>RGB</option>
+                        <option value="hsl">HSL</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-convert" id="btnConvert">🔄 转换颜色</button>
+
+            <div class="result-section" id="resultSection">
+                <h3>✨ 转换结果</h3>
+                <div class="empty-result" id="emptyResult">
+                    <div class="icon">🌈</div>
+                    <p>输入颜色值并点击"转换颜色"查看结果</p>
+                </div>
+                <div id="resultContent" style="display: none;">
+                    <div class="result-card">
+                        <div class="result-main">
+                            <div class="label" id="resultLabel">RGB</div>
+                            <div class="value" id="resultValue">rgb(255, 0, 0)</div>
+                        </div>
+                        <div class="result-details" id="resultDetails">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        const colorInput = document.getElementById('colorInput');
+        const fromFormat = document.getElementById('fromFormat');
+        const toFormat = document.getElementById('toFormat');
+        const swapBtn = document.getElementById('swapBtn');
+        const btnConvert = document.getElementById('btnConvert');
+        const colorFill = document.getElementById('colorFill');
+        const colorValue = document.getElementById('colorValue');
+        const emptyResult = document.getElementById('emptyResult');
+        const resultContent = document.getElementById('resultContent');
+        const resultLabel = document.getElementById('resultLabel');
+        const resultValue = document.getElementById('resultValue');
+        const resultDetails = document.getElementById('resultDetails');
+
+        function updatePreview(color) {
+            let hexColor = '#ff0000';
+            const trimmed = color.trim().toLowerCase();
+
+            if (/^#?[0-9a-f]{6}$/.test(trimmed)) {
+                hexColor = trimmed.startsWith('#') ? trimmed : '#' + trimmed;
+            } else if (/^#?[0-9a-f]{3}$/.test(trimmed)) {
+                const t = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+                hexColor = '#' + t[0] + t[0] + t[1] + t[1] + t[2] + t[2];
+            }
+
+            colorFill.style.background = hexColor;
+            colorValue.textContent = hexColor.toUpperCase();
+        }
+
+        async function convert() {
+            const color = colorInput.value.trim();
+            const from = fromFormat.value;
+            const to = toFormat.value;
+
+            if (!color) {
+                showError('请输入颜色值');
+                return;
+            }
+
+            btnConvert.disabled = true;
+            btnConvert.textContent = '⏳ 转换中...';
+
+            try {
+                const result = await apiRequest('/api/convert/color', {
+                    method: 'POST',
+                    data: { color: color },
+                    options: { from: from, to: to }
+                });
+
+                if (result.success) {
+                    showResult(result.data);
+                } else {
+                    showError(result.error || '转换失败');
+                }
+            } catch (error) {
+                console.error('请求后端失败:', error);
+                showError('无法连接到后端服务');
+            } finally {
+                btnConvert.disabled = false;
+                btnConvert.textContent = '🔄 转换颜色';
+            }
+        }
+
+        function showResult(data) {
+            emptyResult.style.display = 'none';
+            resultContent.style.display = 'block';
+
+            const formatLabels = { hex: 'HEX', rgb: 'RGB', hsl: 'HSL' };
+            resultLabel.textContent = formatLabels[data.to] || data.to.toUpperCase();
+            resultValue.textContent = data.result;
+
+            if (data.rgb) {
+                resultDetails.innerHTML = `
+                    <div class="detail-item">
+                        <div class="label">R</div>
+                        <div class="value">${data.rgb.r}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">G</div>
+                        <div class="value">${data.rgb.g}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">B</div>
+                        <div class="value">${data.rgb.b}</div>
+                    </div>
+                `;
+            } else {
+                resultDetails.innerHTML = '';
+            }
+
+            if (data.original) {
+                updatePreview(data.original);
+            }
+        }
+
+        function showError(message) {
+            emptyResult.style.display = 'none';
+            resultContent.style.display = 'block';
+            resultLabel.textContent = '错误';
+            resultValue.textContent = '';
+            resultDetails.innerHTML = `<div class="error-text">❌ ${message}</div>`;
+        }
+
+        function swapFormats() {
+            const temp = fromFormat.value;
+            fromFormat.value = toFormat.value;
+            toFormat.value = temp;
+        }
+
+        colorInput.addEventListener('input', (e) => updatePreview(e.target.value));
+        fromFormat.addEventListener('change', updatePreviewFromSelect);
+        toFormat.addEventListener('change', updatePreviewFromSelect);
+        swapBtn.addEventListener('click', swapFormats);
+        btnConvert.addEventListener('click', convert);
+        colorInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') convert();
+        });
+
+        function updatePreviewFromSelect() {
+            updatePreview(colorInput.value);
+        }
+
+        updatePreview('#ff0000');
+
+        console.log('🎨 颜色转换已加载！');
+    </script>
+</body>
+</html>

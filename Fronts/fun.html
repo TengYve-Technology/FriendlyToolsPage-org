@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎮 趣味工具 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 16px;
+            transition: color 0.2s;
+        }
+
+        .back-home:hover {
+            color: #8b5cf6;
+        }
+
+        .page-header .subtitle {
+            color: #64748b;
+            font-size: 15px;
+            margin-top: 4px;
+        }
+
+        .card .card-badge {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+
+        .loading-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        .loading-state .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+            font-size: 32px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 导航栏 ===== -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🎮</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">趣味工具</span>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索趣味工具..." />
+                <button id="searchBtn">🔍</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== 主内容 ===== -->
+    <main class="main-content">
+        <div class="container">
+            <a href="index.html" class="back-home">← 返回首页</a>
+            <div class="page-header">
+                <h1>🎮 趣味工具</h1>
+                <p class="subtitle" id="subtitle">加载中...</p>
+            </div>
+
+            <div class="card-grid" id="cardGrid">
+                <div class="loading-state">
+                    <div class="spinner">⏳</div>
+                    <p>加载工具列表中...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== 页脚 ===== -->
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script>
+        let funTools = [];
+
+        async function loadData() {
+            const grid = document.getElementById('cardGrid');
+
+            try {
+                const response = await fetch('data/funTools.json');
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                funTools = data;
+                renderCards(funTools);
+                console.log('✅ 数据加载成功，共', funTools.length, '个工具');
+
+            } catch (error) {
+                console.error('❌ 加载数据失败:', error);
+                grid.innerHTML = `
+                    <div class="error-state">
+                        <div style="font-size: 48px; margin-bottom: 12px;">⚠️</div>
+                        <p>数据加载失败</p>
+                        <p style="font-size: 14px; color: #94a3b8; margin-top: 4px;">
+                            请确保 <code>data/funTools.json</code> 文件存在
+                        </p>
+                        <button onclick="loadData()" style="
+                            margin-top: 16px;
+                            padding: 8px 24px;
+                            background: #8b5cf6;
+                            color: #fff;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                        ">重新加载</button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderCards(tools) {
+            const grid = document.getElementById('cardGrid');
+            grid.innerHTML = '';
+
+            if (!tools || tools.length === 0) {
+                grid.innerHTML = `
+                    <div class="loading-state">
+                        <p>暂无工具数据</p>
+                    </div>
+                `;
+                document.getElementById('subtitle').textContent = '暂无工具';
+                return;
+            }
+
+            tools.forEach(tool => {
+                const card = document.createElement('a');
+                card.className = 'card';
+                card.href = tool.link;
+
+                if (tool.link === '#') {
+                    card.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        alert(`🔧 工具 "${tool.title}" 正在开发中，敬请期待！`);
+                    });
+                }
+
+                card.innerHTML = `
+                    <span class="card-icon">${tool.icon}</span>
+                    <div class="card-title">${tool.title}</div>
+                    <div class="card-desc">${tool.desc}</div>
+                    ${tool.badge ? `<span class="card-badge">${tool.badge}</span>` : ''}
+                `;
+
+                grid.appendChild(card);
+            });
+
+            document.getElementById('subtitle').textContent =
+                `共 ${tools.length} 个趣味工具 · 点击卡片进入`;
+        }
+
+        function searchTools(keyword) {
+            const lower = keyword.toLowerCase().trim();
+            if (lower === '') {
+                renderCards(funTools);
+                return;
+            }
+
+            const filtered = funTools.filter(tool =>
+                tool.title.includes(lower) ||
+                tool.desc.includes(lower)
+            );
+            renderCards(filtered);
+
+            const subtitle = document.getElementById('subtitle');
+            if (filtered.length === 0) {
+                subtitle.textContent = `没有找到包含 "${keyword}" 的工具`;
+            } else {
+                subtitle.textContent = `找到 ${filtered.length} 个工具`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+
+            searchInput.addEventListener('input', (e) => {
+                searchTools(e.target.value);
+            });
+
+            searchBtn.addEventListener('click', () => {
+                searchTools(searchInput.value);
+            });
+
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    searchTools(searchInput.value);
+                }
+            });
+        });
+
+        console.log('🎮 趣味工具页面已加载！');
+    </script>
+</body>
+</html>

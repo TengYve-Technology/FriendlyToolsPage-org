@@ -1,0 +1,26 @@
+[
+    {
+        "id": "csv-to-json",
+        "icon": "🔄",
+        "title": "CSV转JSON",
+        "desc": "CSV格式转JSON数组",
+        "badge": "",
+        "link": "csv-to-json.html"
+    },
+    {
+        "id": "json-to-csv",
+        "icon": "🔄",
+        "title": "JSON转CSV",
+        "desc": "JSON数组转CSV格式",
+        "badge": "",
+        "link": "json-to-csv.html"
+    },
+    {
+        "id": "chart-generate",
+        "icon": "📊",
+        "title": "图表生成",
+        "desc": "数据可视化·柱状图·折线图",
+        "badge": "开发中",
+        "link": "#"
+    }
+]

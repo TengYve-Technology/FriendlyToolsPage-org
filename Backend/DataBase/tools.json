@@ -1,0 +1,76 @@
+{
+  "tools": [
+    {
+      "id": "tomato",
+      "icon": "🍅",
+      "title": "番茄时钟",
+      "desc": "专注计时 · 任务管理 · 统计排行",
+      "category": "time",
+      "badge": "热门",
+      "link": "#"
+    },
+    {
+      "id": "convert",
+      "icon": "🔄",
+      "title": "转换工具",
+      "desc": "进制转换 · 汇率转换 · 格式转换",
+      "category": "convert",
+      "badge": "",
+      "link": "MyProject/FriendlyToolsPage/Fronts/convert.html"
+    },
+    {
+      "id": "image",
+      "icon": "🖼️",
+      "title": "图片处理",
+      "desc": "GIF拆分 · 水印处理 · 取色板",
+      "category": "image",
+      "badge": "",
+      "link": "#"
+    },
+    {
+      "id": "text",
+      "icon": "📝",
+      "title": "文本处理",
+      "desc": "驼峰/连字符 · ASCII映射 · 数字排序",
+      "category": "text",
+      "badge": "",
+      "link": "#"
+    },
+    {
+      "id": "security",
+      "icon": "🔒",
+      "title": "安全工具",
+      "desc": "密码检测 · 随机密码 · AES/SHA256加密",
+      "category": "security",
+      "badge": "推荐",
+      "link": "#"
+    },
+    {
+      "id": "fun",
+      "icon": "🎮",
+      "title": "趣味工具",
+      "desc": "摩斯电码 · 随机抽取 · 身份生成",
+      "category": "fun",
+      "badge": "",
+      "link": "#"
+    },
+    {
+      "id": "export",
+      "icon": "📈",
+      "title": "数据导出",
+      "desc": "CSV导出 · PDF导出 · Excel导出",
+      "category": "export",
+      "badge": "",
+      "link": "#"
+    },
+    {
+      "id": "more",
+      "icon": "⚙️",
+      "title": "更多工具",
+      "desc": "持续更新中... 敬请期待",
+      "category": "more",
+      "badge": "developing...",
+      "link": "#"
+    }
+  ]
+}

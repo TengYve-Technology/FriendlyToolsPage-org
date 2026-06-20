@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📊 文本统计 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .convert-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #f5576c; }
+
+        .convert-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .convert-box h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .convert-box .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+        .input-group textarea {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            resize: vertical;
+            min-height: 200px;
+        }
+        .input-group textarea:focus {
+            border-color: #f5576c;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            transition: 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .stat-card .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .stat-card .stat-label {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .stats-grid.secondary {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .stat-card.secondary {
+            background: #fff;
+            padding: 16px;
+        }
+        .stat-card.secondary .stat-value {
+            font-size: 22px;
+        }
+        .stat-card.secondary .stat-label {
+            font-size: 12px;
+        }
+
+        .btn-convert {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .btn-convert:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+        }
+        .btn-convert:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .stats-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .stats-section h3 {
+            font-size: 15px;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stats-grid.secondary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid.secondary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">📊</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">文本统计</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="convert-container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+        <span style="color: #cbd5e1; margin: 0 8px; font-size: 14px;">|</span>
+        <a href="convert.html" class="back-link">← 返回转换工具</a>
+
+        <div class="convert-box">
+            <h2>📊 文本统计</h2>
+            <p class="desc">字符数 · 字节数 · 行数 · 单词数 · 中英文数字统计</p>
+
+            <div class="input-group">
+                <label for="inputText">输入文本</label>
+                <textarea id="inputText" placeholder="在此输入或粘贴文本，将自动统计..."></textarea>
+            </div>
+
+            <button class="btn-convert" id="btnStats">📊 开始统计</button>
+
+            <div class="stats-section">
+                <h3>📈 基本统计</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🔤</div>
+                        <div class="stat-value" id="charCount">0</div>
+                        <div class="stat-label">字符数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💾</div>
+                        <div class="stat-value" id="byteCount">0</div>
+                        <div class="stat-label">字节数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-value" id="lineCount">0</div>
+                        <div class="stat-label">行数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📖</div>
+                        <div class="stat-value" id="wordCount">0</div>
+                        <div class="stat-label">单词数</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <h3>🔍 详细分类</h3>
+                <div class="stats-grid secondary">
+                    <div class="stat-card secondary">
+                        <div class="stat-icon">🇨🇳</div>
+                        <div class="stat-value" id="chineseCount">0</div>
+                        <div class="stat-label">中文字符</div>
+                    </div>
+                    <div class="stat-card secondary">
+                        <div class="stat-icon">🔡</div>
+                        <div class="stat-value" id="englishCount">0</div>
+                        <div class="stat-label">英文字母</div>
+                    </div>
+                    <div class="stat-card secondary">
+                        <div class="stat-icon">🔢</div>
+                        <div class="stat-value" id="digitCount">0</div>
+                        <div class="stat-label">数字</div>
+                    </div>
+                    <div class="stat-card secondary">
+                        <div class="stat-icon">⬜</div>
+                        <div class="stat-value" id="spaceCount">0</div>
+                        <div class="stat-label">空格</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        const inputText = document.getElementById('inputText');
+        const btnStats = document.getElementById('btnStats');
+        const charCount = document.getElementById('charCount');
+        const byteCount = document.getElementById('byteCount');
+        const lineCount = document.getElementById('lineCount');
+        const wordCount = document.getElementById('wordCount');
+        const chineseCount = document.getElementById('chineseCount');
+        const englishCount = document.getElementById('englishCount');
+        const digitCount = document.getElementById('digitCount');
+        const spaceCount = document.getElementById('spaceCount');
+
+        let debounceTimer = null;
+
+        async function calcStats() {
+            const text = inputText.value;
+
+            if (!text) {
+                charCount.textContent = '0';
+                byteCount.textContent = '0';
+                lineCount.textContent = '0';
+                wordCount.textContent = '0';
+                chineseCount.textContent = '0';
+                englishCount.textContent = '0';
+                digitCount.textContent = '0';
+                spaceCount.textContent = '0';
+                return;
+            }
+
+            btnStats.disabled = true;
+
+            try {
+                const result = await apiRequest('/api/convert/text-stats', {
+                    method: 'POST',
+                    data: { text }
+                });
+
+                if (result.success) {
+                    const data = result.data;
+                    charCount.textContent = data.charCount.toLocaleString();
+                    byteCount.textContent = data.byteCount.toLocaleString();
+                    lineCount.textContent = data.lineCount.toLocaleString();
+                    wordCount.textContent = data.wordCount.toLocaleString();
+                    chineseCount.textContent = data.chineseCount.toLocaleString();
+                    englishCount.textContent = data.englishCount.toLocaleString();
+                    digitCount.textContent = data.digitCount.toLocaleString();
+                    spaceCount.textContent = data.spaceCount.toLocaleString();
+                }
+            } catch (error) {
+                console.error('请求后端失败:', error);
+            } finally {
+                btnStats.disabled = false;
+            }
+        }
+
+        function debounceCalc() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(calcStats, 300);
+        }
+
+        btnStats.addEventListener('click', calcStats);
+        inputText.addEventListener('input', debounceCalc);
+
+        inputText.value = 'Hello World! 你好世界！\n这是一个文本统计工具的示例文本。\n1234567890';
+        calcStats();
+
+        console.log('📊 文本统计已加载！');
+    </script>
+</body>
+</html>

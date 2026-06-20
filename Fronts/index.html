@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🍅 Friendly Tools · 效率工具集</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+    <!-- ======================================== -->
+    <!-- 顶部导航栏 -->
+    <!-- ======================================== -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🍅</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">效率工具集</span>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索工具..." />
+                <button id="searchBtn">🔍</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ======================================== -->
+    <!-- 主内容 -->
+    <!-- ======================================== -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 页眉 -->
+            <div class="page-header">
+                <h1>🧰 全部工具</h1>
+                <p>点击卡片进入对应工具 · 共 <span id="toolCount">0</span> 个工具</p>
+            </div>
+
+            <!-- 卡片网格 -->
+            <div class="card-grid" id="cardGrid">
+                <!-- 由 JavaScript 动态生成 -->
+            </div>
+        </div>
+    </main>
+
+    <!-- ======================================== -->
+    <!-- 页脚 -->
+    <!-- ======================================== -->
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造 · <a href="#" id="githubLink">GitHub</a></p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

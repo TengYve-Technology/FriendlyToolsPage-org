@@ -1,0 +1,16 @@
+{
+  "name": "friendly-tools",
+  "version": "1.0.0",
+  "description": "Friendly Tools - 在线效率工具集",
+  "scripts": {
+    "start": "node Backend/index.js",
+    "dev": "node Backend/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jszip": "^3.10.1",
+    "multer": "^2.2.0",
+    "sharp": "^0.35.1"
+  }
+}

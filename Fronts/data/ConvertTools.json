@@ -1,0 +1,43 @@
+[
+    {
+        "id": "base-convert",
+        "icon": "🔢",
+        "title": "进制转换",
+        "desc": "二进制 · 八进制 · 十进制 · 十六进制互转",
+        "badge": "常用",
+        "link": "base-convert.html"
+    },
+    {
+        "id": "exchange-rate",
+        "icon": "💱",
+        "title": "汇率转换",
+        "desc": "实时汇率换算（需联网）",
+        "badge": "",
+        "link": "exchange-rate.html"
+    },
+
+    {
+        "id": "unit-convert",
+        "icon": "📏",
+        "title": "单位转换",
+        "desc": "长度 · 重量 · 温度 · 面积 · 速度",
+        "badge": "",
+        "link": "unit-convert.html"
+    },
+    {
+        "id": "time-convert",
+        "icon": "⏰",
+        "title": "时间转换",
+        "desc": "时区转换 · 时间戳转换",
+        "badge": "",
+        "link": "time-convert.html"
+    },
+    {
+        "id": "color-convert",
+        "icon": "🎨",
+        "title": "颜色转换",
+        "desc": "HEX · RGB · HSL 互转",
+        "badge": "新",
+        "link": "color-convert.html"
+    }
+]

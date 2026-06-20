@@ -1,0 +1,50 @@
+[
+    {
+        "id": "password-strength",
+        "icon": "💪",
+        "title": "密码强度检测",
+        "desc": "实时检测·评分·改进建议",
+        "badge": "推荐",
+        "link": "password-strength.html"
+    },
+    {
+        "id": "password-generate",
+        "icon": "🔑",
+        "title": "随机密码生成",
+        "desc": "自定义长度·字符类型·批量生成",
+        "badge": "",
+        "link": "password-generate.html"
+    },
+    {
+        "id": "sha256",
+        "icon": "🔐",
+        "title": "SHA256哈希",
+        "desc": "不可逆加密·文件哈希",
+        "badge": "",
+        "link": "sha256.html"
+    },
+    {
+        "id": "aes",
+        "icon": "🛡️",
+        "title": "AES加解密",
+        "desc": "对称加密·安全传输",
+        "badge": "",
+        "link": "aes.html"
+    },
+    {
+        "id": "qrcode-generate",
+        "icon": "📱",
+        "title": "二维码生成",
+        "desc": "文本/链接生成二维码",
+        "badge": "开发中",
+        "link": "#"
+    },
+    {
+        "id": "qrcode-parse",
+        "icon": "🔲",
+        "title": "二维码解析",
+        "desc": "图片识别二维码内容",
+        "badge": "开发中",
+        "link": "#"
+    }
+]

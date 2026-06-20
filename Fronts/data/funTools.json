@@ -1,0 +1,34 @@
+[
+    {
+        "id": "morse",
+        "icon": "📡",
+        "title": "摩斯电码转换",
+        "desc": "编码·解码·闪光灯",
+        "badge": "",
+        "link": "morse.html"
+    },
+    {
+        "id": "random-picker",
+        "icon": "🎲",
+        "title": "随机抽取器",
+        "desc": "抽签·抽奖·随机选择",
+        "badge": "热门",
+        "link": "random-picker.html"
+    },
+    {
+        "id": "identity",
+        "icon": "👤",
+        "title": "虚拟身份生成",
+        "desc": "姓名·手机·邮箱·身份证",
+        "badge": "",
+        "link": "identity.html"
+    },
+    {
+        "id": "color-convert",
+        "icon": "🎨",
+        "title": "颜色转换",
+        "desc": "HEX·RGB·HSL互转",
+        "badge": "",
+        "link": "color-convert.html"
+    }
+]

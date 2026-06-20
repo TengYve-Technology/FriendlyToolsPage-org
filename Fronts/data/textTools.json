@@ -1,0 +1,50 @@
+[
+    {
+        "id": "text-case",
+        "icon": "🔤",
+        "title": "驼峰/连字符转换",
+        "desc": "驼峰·帕斯卡·连字符·下划线互转",
+        "badge": "",
+        "link": "text-case.html"
+    },
+    {
+        "id": "ascii",
+        "icon": "🔣",
+        "title": "ASCII映射",
+        "desc": "文本与ASCII码互转",
+        "badge": "",
+        "link": "ascii.html"
+    },
+    {
+        "id": "text-stats",
+        "icon": "📊",
+        "title": "文本统计",
+        "desc": "字符数·字节数·行数·词数统计",
+        "badge": "",
+        "link": "text-stats.html"
+    },
+    {
+        "id": "text-case-convert",
+        "icon": "🔠",
+        "title": "大小写转换",
+        "desc": "大写·小写·首字母大写",
+        "badge": "",
+        "link": "text-case.html"
+    },
+    {
+        "id": "text-dedup",
+        "icon": "🔍",
+        "title": "文本去重",
+        "desc": "按行/分隔符去重·忽略大小写",
+        "badge": "",
+        "link": "text-dedup.html"
+    },
+    {
+        "id": "json-format",
+        "icon": "📋",
+        "title": "JSON格式化",
+        "desc": "格式化·压缩·校验",
+        "badge": "常用",
+        "link": "json-format.html"
+    }
+]

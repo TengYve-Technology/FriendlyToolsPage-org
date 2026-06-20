@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>💱 汇率转换 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #f5576c; }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+
+        .card .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+
+        .input-group input,
+        .input-group select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: #f5576c;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .result-box {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 16px 20px;
+            border: 2px dashed #e2e8f0;
+            margin-top: 8px;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .result-box .amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .result-box .rate-info {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .btn-convert {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .btn-convert:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-convert:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 640px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">💱</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">汇率转换</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+        <span style="color: #cbd5e1; margin: 0 8px; font-size: 14px;">|</span>
+        <a href="convert.html" class="back-link">← 返回转换工具</a>
+
+        <div class="card">
+            <h2>💱 实时汇率转换</h2>
+            <p class="desc">支持 30+ 种主要货币 · 数据来自 Frankfurter API（欧洲央行）</p>
+
+            <div class="row">
+                <div class="input-group">
+                    <label for="amount">金额</label>
+                    <input type="number" id="amount" value="1" step="0.01" min="0" />
+                </div>
+                <div class="input-group">
+                    <label for="fromCurrency">从</label>
+                    <select id="fromCurrency">
+                        <option value="USD">USD - 美元</option>
+                        <option value="EUR">EUR - 欧元</option>
+                        <option value="GBP">GBP - 英镑</option>
+                        <option value="JPY">JPY - 日元</option>
+                        <option value="CNY" selected>CNY - 人民币</option>
+                        <option value="HKD">HKD - 港币</option>
+                        <option value="KRW">KRW - 韩元</option>
+                        <option value="AUD">AUD - 澳元</option>
+                        <option value="CAD">CAD - 加元</option>
+                        <option value="CHF">CHF - 瑞士法郎</option>
+                        <option value="SGD">SGD - 新加坡元</option>
+                        <option value="NZD">NZD - 新西兰元</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-group">
+                    <label for="toCurrency">到</label>
+                    <select id="toCurrency">
+                        <option value="USD">USD - 美元</option>
+                        <option value="EUR">EUR - 欧元</option>
+                        <option value="GBP">GBP - 英镑</option>
+                        <option value="JPY">JPY - 日元</option>
+                        <option value="CNY" selected>CNY - 人民币</option>
+                        <option value="HKD">HKD - 港币</option>
+                        <option value="KRW">KRW - 韩元</option>
+                        <option value="AUD">AUD - 澳元</option>
+                        <option value="CAD">CAD - 加元</option>
+                        <option value="CHF">CHF - 瑞士法郎</option>
+                        <option value="SGD">SGD - 新加坡元</option>
+                        <option value="NZD">NZD - 新西兰元</option>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                    <button class="btn-convert" id="btnConvert">🔄 转换</button>
+                </div>
+            </div>
+
+            <div class="result-box" id="resultBox">
+                <div class="amount" id="resultAmount">—</div>
+                <div class="rate-info" id="resultRate">输入金额，点击转换</div>
+            </div>
+
+            <div id="errorMsg" class="error-msg"></div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 数据来自 Frankfurter API（欧洲央行）</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        // ============================================
+        // DOM 引用
+        // ============================================
+        const amountInput = document.getElementById('amount');
+        const fromSelect = document.getElementById('fromCurrency');
+        const toSelect = document.getElementById('toCurrency');
+        const btnConvert = document.getElementById('btnConvert');
+        const resultAmount = document.getElementById('resultAmount');
+        const resultRate = document.getElementById('resultRate');
+        const errorMsg = document.getElementById('errorMsg');
+
+        // ============================================
+        // 调用后端 API 进行汇率转换
+        // ============================================
+        async function convert() {
+            const amount = parseFloat(amountInput.value);
+            const from = fromSelect.value;
+            const to = toSelect.value;
+
+            if (isNaN(amount) || amount <= 0) {
+                errorMsg.textContent = '⚠️ 请输入有效的正数金额';
+                return;
+            }
+            errorMsg.textContent = '';
+
+            btnConvert.disabled = true;
+            btnConvert.textContent = '⏳ 获取汇率中...';
+            resultAmount.textContent = '...';
+            resultRate.textContent = '正在获取实时汇率...';
+
+            try {
+                const data = await apiRequest('/api/convert/exchange', {
+                    method: 'POST',
+                    data: { amount, from, to }
+                });
+
+                if (data.success) {
+                    resultAmount.textContent = `${data.data.result} ${to}`;
+                    resultRate.textContent =
+                        `1 ${from} = ${data.data.rate} ${to} · 更新于 ${data.data.updated} · 数据来源: ${data.data.source}`;
+                    errorMsg.textContent = '';
+                } else {
+                    errorMsg.textContent = `❌ ${data.error}`;
+                    resultAmount.textContent = '—';
+                    resultRate.textContent = '转换失败';
+                }
+            } catch (err) {
+                console.error('请求失败:', err);
+                errorMsg.textContent = '❌ 无法连接服务器，请检查后端是否运行';
+                resultAmount.textContent = '—';
+                resultRate.textContent = '网络错误';
+            }
+
+            btnConvert.disabled = false;
+            btnConvert.textContent = '🔄 转换';
+        }
+
+        // ============================================
+        // 事件绑定
+        // ============================================
+        btnConvert.addEventListener('click', convert);
+        amountInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') convert();
+        });
+        fromSelect.addEventListener('change', convert);
+        toSelect.addEventListener('change', convert);
+
+        // ============================================
+        // 初始化
+        // ============================================
+        convert();
+
+        console.log('💱 汇率转换已加载！');
+    </script>
+</body>
+</html>
