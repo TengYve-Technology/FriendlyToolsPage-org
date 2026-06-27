@@ -1,10 +1,33 @@
-const path = require('path');
-const { exec } = require('child_process');
 const { successResponse, errorResponse } = require('../utils/response');
+
+// 进制转换字符集
+const CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 module.exports = function(app, dependencies) {
     const { errorMap, dbPath } = dependencies;
-    const cppPath = path.join(__dirname, '..', 'Cpp', 'base-convert.exe');
+
+    // 纯 Node.js 实现的进制转换
+    function convertBase(numStr, fromBase, toBase) {
+        // 将任意进制转换为十进制
+        let decimal = 0;
+        for (let i = 0; i < numStr.length; i++) {
+            const char = numStr[i].toUpperCase();
+            const digit = CHARSET.indexOf(char);
+            if (digit === -1 || digit >= fromBase) {
+                throw new Error(`无效的字符 '${char}' for base ${fromBase}`);
+            }
+            decimal = decimal * fromBase + digit;
+        }
+
+        // 将十进制转换为目标进制
+        if (decimal === 0) return '0';
+        let result = '';
+        while (decimal > 0) {
+            result = CHARSET[decimal % toBase] + result;
+            decimal = Math.floor(decimal / toBase);
+        }
+        return result;
+    }
 
     app.post('/api/convert/base', (req, res) => {
         const { data, options } = req.body;
@@ -32,51 +55,23 @@ module.exports = function(app, dependencies) {
             return errorResponse(res, '数字不能为空', 10002);
         }
 
-        if (from < 2 || from > 36 || to < 2 || to > 36) {
+        if (isNaN(from) || isNaN(to) || from < 2 || from > 36 || to < 2 || to > 36) {
             return errorResponse(res, '进制必须为 2~36', 10003);
         }
 
-        const command = `"${cppPath}" ${numStr} ${from} ${to}`;
-
-        console.log(`📥 调用 C++: ${numStr} (${from}进制) → (${to}进制)`);
-
-        exec(command, (error, stdout, stderr) => {
-            if (stderr) {
-                const trimmed = stderr.trim();
-                const match = trimmed.match(/^ERROR : (\d+)$/);
-
-                if (match) {
-                    const code = parseInt(match[1]);
-                    const errorInfo = errorMap[String(code)];
-
-                    if (errorInfo) {
-                        console.error(`❌ C++ 错误 [${code}]: ${errorInfo.message}`);
-                        return errorResponse(res, errorInfo.message, code);
-                    } else {
-                        console.error('❌ 未知错误码:', code);
-                        return errorResponse(res, `未知错误 (${code})，请联系管理员`, 10000, 500);
-                    }
-                }
-
-                console.error('⚠️ C++ 未知错误:', trimmed);
-                return errorResponse(res, 'C++ 内部错误', 10000, 500);
-            }
-
-            if (error) {
-                console.error('❌ 执行 C++ 失败:', error.message);
-                return errorResponse(res, '执行 C++ 失败: ' + error.message, 10000, 500);
-            }
-
-            const result = stdout.trim();
-            console.log(`✅ C++ 返回: ${result}`);
-
+        try {
+            const result = convertBase(numStr, from, to);
+            console.log(`✅ 进制转换: ${numStr} (${from}进制) → ${result} (${to}进制)`);
             successResponse(res, {
                 original: numStr,
                 fromBase: from,
                 toBase: to,
                 result: result
             });
-        });
+        } catch (error) {
+            console.error(`❌ 进制转换错误: ${error.message}`);
+            return errorResponse(res, error.message, 10002);
+        }
     });
 
     app.post('/api/convert/exchange', async (req, res) => {
@@ -764,6 +759,338 @@ module.exports = function(app, dependencies) {
         } catch (error) {
             console.error('❌ JSON转CSV失败:', error);
             errorResponse(res, 'JSON转CSV失败: ' + error.message, 10000, 500);
+        }
+    });
+
+    // URL 编码/解码
+    app.post('/api/convert/url-encode', (req, res) => {
+        const { data, options } = req.body;
+        const text = (data && data.text !== undefined) ? data.text : req.body.text;
+
+        if (text === undefined || text === null) {
+            return errorResponse(res, '缺少必要参数: text', 10001);
+        }
+
+        try {
+            const result = encodeURIComponent(String(text));
+            console.log(`✅ URL 编码成功: "${text.substring(0, 20)}..." → "${result.substring(0, 20)}..."`);
+            successResponse(res, {
+                result,
+                original: text,
+                mode: 'encode'
+            });
+        } catch (error) {
+            console.error('❌ URL 编码失败:', error);
+            errorResponse(res, 'URL 编码失败: ' + error.message, 10000, 500);
+        }
+    });
+
+    app.post('/api/convert/url-decode', (req, res) => {
+        const { data, options } = req.body;
+        const text = (data && data.text !== undefined) ? data.text : req.body.text;
+
+        if (text === undefined || text === null) {
+            return errorResponse(res, '缺少必要参数: text', 10001);
+        }
+
+        try {
+            const result = decodeURIComponent(String(text));
+            console.log(`✅ URL 解码成功`);
+            successResponse(res, {
+                result,
+                original: text,
+                mode: 'decode'
+            });
+        } catch (error) {
+            console.error('❌ URL 解码失败:', error);
+            return errorResponse(res, 'URL 解码失败: 无效的编码字符串', 10002);
+        }
+    });
+
+    // Base64 编码/解码
+    app.post('/api/convert/base64', (req, res) => {
+        const { data, options } = req.body;
+        const text = (data && data.text !== undefined) ? data.text : req.body.text;
+        const mode = (options && options.mode) ? options.mode : (req.body.mode || 'encode');
+
+        if (text === undefined || text === null) {
+            return errorResponse(res, '缺少必要参数: text', 10001);
+        }
+
+        try {
+            let result;
+            if (mode === 'encode') {
+                result = Buffer.from(String(text), 'utf8').toString('base64');
+            } else if (mode === 'decode') {
+                result = Buffer.from(String(text), 'base64').toString('utf8');
+            } else {
+                return errorResponse(res, `不支持的模式: ${mode}，请使用 encode 或 decode`, 10009);
+            }
+            console.log(`✅ Base64 ${mode === 'encode' ? '编码' : '解码'}成功`);
+            successResponse(res, {
+                result,
+                original: text,
+                mode: mode
+            });
+        } catch (error) {
+            console.error('❌ Base64 处理失败:', error);
+            return errorResponse(res, 'Base64 处理失败: 无效的编码字符串', 10002);
+        }
+    });
+
+    // HTML 实体编码/解码
+    app.post('/api/convert/html-entity', (req, res) => {
+        const { data, options } = req.body;
+        const text = (data && data.text !== undefined) ? data.text : req.body.text;
+        const mode = (options && options.mode) ? options.mode : (req.body.mode || 'encode');
+
+        if (text === undefined || text === null) {
+            return errorResponse(res, '缺少必要参数: text', 10001);
+        }
+
+        try {
+            let result;
+            if (mode === 'encode') {
+                // HTML 实体编码
+                result = String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            } else if (mode === 'decode') {
+                // HTML 实体解码
+                result = String(text)
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'")
+                    .replace(/&apos;/g, "'")
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
+                    .replace(/&x([0-9a-fA-F]+);/g, (match, hex) => String.fromCharCode(parseInt(hex, 16)))
+                    .replace(/&amp;/g, '&'); // 最后解码 &amp;
+            } else {
+                return errorResponse(res, `不支持的模式: ${mode}，请使用 encode 或 decode`, 10009);
+            }
+
+            console.log(`✅ HTML 实体 ${mode === 'encode' ? '编码' : '解码'}成功`);
+            successResponse(res, {
+                result,
+                original: text,
+                mode: mode
+            });
+        } catch (error) {
+            console.error('❌ HTML 实体处理失败:', error);
+            return errorResponse(res, 'HTML 实体处理失败: ' + error.message, 10002);
+        }
+    });
+
+    // JSON 校验
+    app.post('/api/convert/json-validate', (req, res) => {
+        const { data, options } = req.body;
+        const text = (data && data.text !== undefined) ? data.text : req.body.text;
+
+        if (text === undefined || text === null) {
+            return errorResponse(res, '缺少必要参数: text', 10001);
+        }
+
+        try {
+            const obj = JSON.parse(String(text));
+            successResponse(res, {
+                valid: true,
+                result: obj,
+                message: 'JSON 格式正确'
+            });
+        } catch (error) {
+            // 尝试提取错误位置信息
+            const errorMsg = error.message;
+            const match = errorMsg.match(/position (\d+)/i);
+            let errorPosition = null;
+            let errorLine = null;
+            let errorColumn = null;
+
+            if (match) {
+                errorPosition = parseInt(match[1]);
+                const textStr = String(text);
+                let line = 1;
+                let column = 1;
+                for (let i = 0; i < errorPosition && i < textStr.length; i++) {
+                    if (textStr[i] === '\n') {
+                        line++;
+                        column = 1;
+                    } else {
+                        column++;
+                    }
+                }
+                errorLine = line;
+                errorColumn = column;
+            }
+
+            console.log(`❌ JSON 校验失败: ${errorMsg}`);
+            return errorResponse(res, {
+                valid: false,
+                error: errorMsg,
+                errorPosition,
+                errorLine,
+                errorColumn,
+                message: 'JSON 格式错误'
+            }, 10010);
+        }
+    });
+
+    // 日期计算器
+    app.post('/api/convert/date-calc', (req, res) => {
+        const { data, options } = req.body;
+        const mode = (options && options.mode) ? options.mode : (req.body.mode || 'diff');
+        const date1 = (data && data.date1) ? data.date1 : req.body.date1;
+        const date2 = (data && data.date2) ? data.date2 : req.body.date2;
+        const count = (options && options.count) ? options.count : (req.body.count || 0);
+        const unit = (options && options.unit) ? options.unit : (req.body.unit || 'day');
+
+        try {
+            let result;
+
+            if (mode === 'diff') {
+                // 计算日期差
+                if (!date1 || !date2) {
+                    return errorResponse(res, '缺少必要参数: date1, date2', 10001);
+                }
+
+                const d1 = new Date(date1);
+                const d2 = new Date(date2);
+
+                if (isNaN(d1.getTime()) || isNaN(d2.getTime())) {
+                    return errorResponse(res, '无效的日期格式', 10002);
+                }
+
+                const diffMs = Math.abs(d2 - d1);
+                const diffSecs = Math.floor(diffMs / 1000);
+                const diffMins = Math.floor(diffSecs / 60);
+                const diffHours = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                const diffWeeks = Math.floor(diffDays / 7);
+                const diffMonths = Math.floor(diffDays / 30);
+                const diffYears = Math.floor(diffDays / 365);
+
+                result = {
+                    days: diffDays,
+                    hours: diffHours,
+                    minutes: diffMins,
+                    seconds: diffSecs,
+                    weeks: diffWeeks,
+                    months: diffMonths,
+                    years: diffYears,
+                    date1: date1,
+                    date2: date2
+                };
+
+                console.log(`✅ 日期差计算: ${date1} ↔ ${date2} = ${diffDays} 天`);
+            } else if (mode === 'add') {
+                // 日期加减
+                if (!date1) {
+                    return errorResponse(res, '缺少必要参数: date1', 10001);
+                }
+
+                const d = new Date(date1);
+                if (isNaN(d.getTime())) {
+                    return errorResponse(res, '无效的日期格式', 10002);
+                }
+
+                let addMs = 0;
+                const n = parseInt(count) || 0;
+
+                switch (unit) {
+                    case 'day':
+                        addMs = n * 24 * 60 * 60 * 1000;
+                        break;
+                    case 'hour':
+                        addMs = n * 60 * 60 * 1000;
+                        break;
+                    case 'minute':
+                        addMs = n * 60 * 1000;
+                        break;
+                    case 'second':
+                        addMs = n * 1000;
+                        break;
+                    case 'week':
+                        addMs = n * 7 * 24 * 60 * 60 * 1000;
+                        break;
+                    case 'month':
+                        d.setMonth(d.getMonth() + n);
+                        result = {
+                            original: date1,
+                            result: d.toISOString().split('T')[0],
+                            added: n,
+                            unit: unit
+                        };
+                        console.log(`✅ 日期计算: ${date1} + ${n} ${unit} = ${d.toISOString().split('T')[0]}`);
+                        return successResponse(res, result);
+                    case 'year':
+                        d.setFullYear(d.getFullYear() + n);
+                        result = {
+                            original: date1,
+                            result: d.toISOString().split('T')[0],
+                            added: n,
+                            unit: unit
+                        };
+                        console.log(`✅ 日期计算: ${date1} + ${n} ${unit} = ${d.toISOString().split('T')[0]}`);
+                        return successResponse(res, result);
+                    default:
+                        return errorResponse(res, `不支持的单位: ${unit}`, 10009);
+                }
+
+                const newDate = new Date(d.getTime() + addMs);
+                result = {
+                    original: date1,
+                    result: newDate.toISOString().split('T')[0],
+                    added: n,
+                    unit: unit
+                };
+
+                console.log(`✅ 日期计算: ${date1} + ${n} ${unit} = ${newDate.toISOString().split('T')[0]}`);
+            } else if (mode === 'workday') {
+                // 计算工作日（排除周末）
+                if (!date1 || !date2) {
+                    return errorResponse(res, '缺少必要参数: date1, date2', 10001);
+                }
+
+                const d1 = new Date(date1);
+                const d2 = new Date(date2);
+
+                if (isNaN(d1.getTime()) || isNaN(d2.getTime())) {
+                    return errorResponse(res, '无效的日期格式', 10002);
+                }
+
+                let workDays = 0;
+                const start = d1 < d2 ? d1 : d2;
+                const end = d1 < d2 ? d2 : d1;
+                const current = new Date(start);
+
+                while (current <= end) {
+                    const dayOfWeek = current.getDay();
+                    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                        workDays++;
+                    }
+                    current.setDate(current.getDate() + 1);
+                }
+
+                result = {
+                    workdays: workDays,
+                    totalDays: Math.floor(Math.abs(d2 - d1) / (24 * 60 * 60 * 1000)) + 1,
+                    date1: date1,
+                    date2: date2
+                };
+
+                console.log(`✅ 工作日计算: ${date1} ↔ ${date2} = ${workDays} 个工作日`);
+            } else {
+                return errorResponse(res, `不支持的模式: ${mode}，支持: diff, add, workday`, 10009);
+            }
+
+            successResponse(res, result);
+        } catch (error) {
+            console.error('❌ 日期计算失败:', error);
+            errorResponse(res, '日期计算失败: ' + error.message, 10000, 500);
         }
     });
 

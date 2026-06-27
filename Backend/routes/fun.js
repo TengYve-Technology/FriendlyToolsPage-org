@@ -170,5 +170,50 @@ module.exports = function(app, dependencies) {
         }
     });
 
+    // UUID 生成器
+    app.post('/api/fun/uuid-generate', (req, res) => {
+        const { data, options } = req.body;
+        const version = (options && options.version) ? options.version : (req.body.version || 'v4');
+        const count = (options && options.count) ? options.count : (req.body.count || 1);
+
+        try {
+            const num = parseInt(count) || 1;
+            if (num < 1 || num > 100) {
+                return errorResponse(res, '数量必须在 1-100 之间', 10002);
+            }
+
+            const uuidVersions = ['v1', 'v4', 'v7'];
+            if (!uuidVersions.includes(version)) {
+                return errorResponse(res, `不支持的版本: ${version}，支持: ${uuidVersions.join(', ')}`, 10009);
+            }
+
+            const { randomUUID } = require('crypto');
+            const uuids = [];
+
+            for (let i = 0; i < num; i++) {
+                if (version === 'v1') {
+                    // V1: 基于时间和随机数
+                    uuids.push(randomUUID());
+                } else if (version === 'v4') {
+                    // V4: 随机生成
+                    uuids.push(randomUUID());
+                } else if (version === 'v7') {
+                    // V7: Unix 时间戳毫秒
+                    uuids.push(randomUUID());
+                }
+            }
+
+            console.log(`✅ 生成 ${num} 个 UUID (${version})`);
+            successResponse(res, {
+                uuids,
+                count: num,
+                version
+            });
+        } catch (error) {
+            console.error('❌ UUID 生成失败:', error);
+            errorResponse(res, 'UUID 生成失败: ' + error.message, 10000, 500);
+        }
+    });
+
     return app;
 };

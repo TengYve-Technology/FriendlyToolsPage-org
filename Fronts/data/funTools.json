@@ -24,11 +24,11 @@
         "link": "identity.html"
     },
     {
-        "id": "color-convert",
-        "icon": "🎨",
-        "title": "颜色转换",
-        "desc": "HEX·RGB·HSL互转",
-        "badge": "",
-        "link": "color-convert.html"
+        "id": "uuid-generate",
+        "icon": "🎲",
+        "title": "UUID生成器",
+        "desc": "v1/v4/v7 版本批量生成",
+        "badge": "新",
+        "link": "uuid-generate.html"
     }
 ]

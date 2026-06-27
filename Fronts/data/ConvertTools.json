@@ -39,5 +39,21 @@
         "desc": "HEX · RGB · HSL 互转",
         "badge": "新",
         "link": "color-convert.html"
+    },
+    {
+        "id": "base64",
+        "icon": "📦",
+        "title": "Base64编码",
+        "desc": "文本Base64编码解码",
+        "badge": "",
+        "link": "base64.html"
+    },
+    {
+        "id": "date-calc",
+        "icon": "📅",
+        "title": "日期计算器",
+        "desc": "日期间隔 · 工作日 · 日期加减",
+        "badge": "新",
+        "link": "date-calc.html"
     }
 ]

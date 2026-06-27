@@ -16,16 +16,7 @@
       "desc": "进制转换 · 汇率转换 · 格式转换",
       "category": "convert",
       "badge": "",
-      "link": "MyProject/FriendlyToolsPage/Fronts/convert.html"
-    },
-    {
-      "id": "image",
-      "icon": "🖼️",
-      "title": "图片处理",
-      "desc": "GIF拆分 · 水印处理 · 取色板",
-      "category": "image",
-      "badge": "",
-      "link": "#"
+      "link": "convert.html"
     },
     {
       "id": "text",
@@ -34,7 +25,7 @@
       "desc": "驼峰/连字符 · ASCII映射 · 数字排序",
       "category": "text",
       "badge": "",
-      "link": "#"
+      "link": "text.html"
     },
     {
       "id": "security",
@@ -43,7 +34,7 @@
       "desc": "密码检测 · 随机密码 · AES/SHA256加密",
       "category": "security",
       "badge": "推荐",
-      "link": "#"
+      "link": "security.html"
     },
     {
       "id": "fun",
@@ -52,16 +43,16 @@
       "desc": "摩斯电码 · 随机抽取 · 身份生成",
       "category": "fun",
       "badge": "",
-      "link": "#"
+      "link": "fun.html"
     },
     {
       "id": "export",
-      "icon": "📈",
-      "title": "数据导出",
-      "desc": "CSV导出 · PDF导出 · Excel导出",
+      "icon": "�",
+      "title": "数据工具",
+      "desc": "CSV/JSON转换 · 数据处理",
       "category": "export",
       "badge": "",
-      "link": "#"
+      "link": "data.html"
     },
     {
       "id": "more",

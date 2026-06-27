@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎲 UUID生成器 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 16px;
+            transition: color 0.2s;
+        }
+
+        .back-home:hover {
+            color: #8b5cf6;
+        }
+
+        .page-header .subtitle {
+            color: #64748b;
+            font-size: 15px;
+            margin-top: 4px;
+        }
+
+        .tool-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .version-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .version-btn {
+            padding: 16px 12px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .version-btn:hover {
+            border-color: #8b5cf6;
+        }
+
+        .version-btn.active {
+            border-color: #8b5cf6;
+            background: #f5f3ff;
+        }
+
+        .version-btn .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .version-btn .title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .version-btn .desc {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #8b5cf6;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .result-section {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        .result-section h3 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-item .uuid {
+            flex: 1;
+            word-break: break-all;
+            color: #374151;
+        }
+
+        .result-item .copy-btn {
+            margin-left: 12px;
+            padding: 6px 12px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .result-item .copy-btn:hover {
+            background: #059669;
+        }
+
+        .info-box {
+            background: #f5f3ff;
+            border: 1px solid #ddd6fe;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h4 {
+            margin: 0 0 12px 0;
+            color: #7c3aed;
+            font-size: 14px;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .info-table th,
+        .info-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .info-table th {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .info-table td:first-child {
+            font-weight: 500;
+            color: #7c3aed;
+        }
+
+        .info-table tr:last-child th,
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 导航栏 ===== -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🎲</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">UUID生成器</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== 主内容 ===== -->
+    <main class="main-content">
+        <div class="container">
+            <a href="fun.html" class="back-home">← 返回趣味工具</a>
+
+            <div class="page-header">
+                <h1>🎲 UUID生成器</h1>
+                <p class="subtitle">生成符合 RFC 4122 标准的 UUID</p>
+            </div>
+
+            <div class="info-box">
+                <h4>💡 UUID 版本说明</h4>
+                <table class="info-table">
+                    <tr>
+                        <th>v1</th>
+                        <td>基于时间和 MAC 地址，兼容旧系统</td>
+                    </tr>
+                    <tr>
+                        <th>v4</th>
+                        <td>随机生成，使用最广泛</td>
+                    </tr>
+                    <tr>
+                        <th>v7</th>
+                        <td>基于 Unix 时间戳毫秒，性能最优</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="tool-container">
+                <div class="version-selector">
+                    <div class="version-btn" data-version="v1">
+                        <div class="icon">🕐</div>
+                        <div class="title">UUID v1</div>
+                        <div class="desc">时间序列</div>
+                    </div>
+                    <div class="version-btn active" data-version="v4">
+                        <div class="icon">🎲</div>
+                        <div class="title">UUID v4</div>
+                        <div class="desc">随机生成</div>
+                    </div>
+                    <div class="version-btn" data-version="v7">
+                        <div class="icon">⚡</div>
+                        <div class="title">UUID v7</div>
+                        <div class="desc">时间排序</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>生成数量</label>
+                    <div class="input-row">
+                        <input type="number" id="countInput" value="5" min="1" max="100" />
+                        <button class="btn btn-primary" id="generateBtn">🎲 生成</button>
+                        <button class="btn btn-secondary" id="clearBtn">🗑️ 清空</button>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <h3>生成结果 <span id="resultCount"></span></h3>
+                    <div class="result-list" id="resultList">
+                        <div class="result-item" style="text-align: center; color: #94a3b8;">
+                            点击"生成"按钮开始生成 UUID
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== 页脚 ===== -->
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script>
+        let currentVersion = 'v4';
+
+        // 版本选择
+        document.querySelectorAll('.version-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.version-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentVersion = btn.dataset.version;
+            });
+        });
+
+        // 生成按钮
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const count = parseInt(document.getElementById('countInput').value) || 5;
+            const resultList = document.getElementById('resultList');
+            const resultCount = document.getElementById('resultCount');
+
+            try {
+                const response = await fetch('/api/fun/uuid-generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        options: {
+                            version: currentVersion,
+                            count: count
+                        }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    resultList.innerHTML = '';
+                    resultCount.textContent = `(${result.data.count} 个 ${result.data.version.toUpperCase()})`;
+
+                    result.data.uuids.forEach((uuid, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'result-item';
+                        item.innerHTML = `
+                            <span class="uuid">${uuid}</span>
+                            <button class="copy-btn" data-uuid="${uuid}">📋 复制</button>
+                        `;
+                        resultList.appendChild(item);
+                    });
+
+                    // 绑定复制按钮
+                    document.querySelectorAll('.copy-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            navigator.clipboard.writeText(btn.dataset.uuid).then(() => {
+                                btn.textContent = '✅';
+                                setTimeout(() => {
+                                    btn.textContent = '📋 复制';
+                                }, 1500);
+                            });
+                        });
+                    });
+                } else {
+                    resultList.innerHTML = `
+                        <div class="result-item" style="color: #ef4444; border-color: #fecaca;">
+                            生成失败: ${result.error || '未知错误'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultList.innerHTML = `
+                    <div class="result-item" style="color: #ef4444; border-color: #fecaca;">
+                        网络错误: ${error.message}
+                    </div>
+                `;
+            }
+        });
+
+        // 清空按钮
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('resultList').innerHTML = `
+                <div class="result-item" style="text-align: center; color: #94a3b8;">
+                    点击"生成"按钮开始生成 UUID
+                </div>
+            `;
+            document.getElementById('resultCount').textContent = '';
+        });
+
+        // 回车键快速生成
+        document.getElementById('countInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('generateBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>

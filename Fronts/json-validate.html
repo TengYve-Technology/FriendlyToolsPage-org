@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📋 JSON校验器 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 16px;
+            transition: color 0.2s;
+        }
+
+        .back-home:hover {
+            color: #06b6d4;
+        }
+
+        .page-header .subtitle {
+            color: #64748b;
+            font-size: 15px;
+            margin-top: 4px;
+        }
+
+        .tool-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Courier New', Consolas, monospace;
+            resize: vertical;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #06b6d4;
+        }
+
+        textarea.error {
+            border-color: #ef4444;
+        }
+
+        textarea.success {
+            border-color: #10b981;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .status-box {
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-box.success {
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+        }
+
+        .status-box.error {
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+        }
+
+        .status-box .icon {
+            font-size: 24px;
+        }
+
+        .status-box .message {
+            flex: 1;
+        }
+
+        .status-box .message h4 {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+        }
+
+        .status-box .message p {
+            margin: 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .error-detail {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .error-detail h4 {
+            margin: 0 0 12px 0;
+            color: #dc2626;
+            font-size: 14px;
+        }
+
+        .error-detail table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .error-detail td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #fecaca;
+        }
+
+        .error-detail td:first-child {
+            font-weight: 500;
+            color: #64748b;
+            width: 100px;
+        }
+
+        .error-detail tr:last-child td {
+            border-bottom: none;
+        }
+
+        .formatted-result {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .formatted-result h4 {
+            margin: 0 0 12px 0;
+            color: #059669;
+            font-size: 14px;
+        }
+
+        .formatted-result pre {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 0;
+            font-size: 13px;
+            font-family: 'Courier New', Consolas, monospace;
+            overflow-x: auto;
+            max-height: 400px;
+            line-height: 1.6;
+        }
+
+        .sample-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .sample-box h4 {
+            margin: 0 0 12px 0;
+            color: #1e40af;
+            font-size: 14px;
+        }
+
+        .sample-box pre {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 0;
+            font-size: 12px;
+            font-family: 'Courier New', Consolas, monospace;
+            overflow-x: auto;
+        }
+
+        .sample-box button {
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sample-box button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 导航栏 ===== -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">📋</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">JSON校验器</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== 主内容 ===== -->
+    <main class="main-content">
+        <div class="container">
+            <a href="text.html" class="back-home">← 返回文本处理</a>
+
+            <div class="page-header">
+                <h1>📋 JSON校验器</h1>
+                <p class="subtitle">验证 JSON 格式并格式化输出</p>
+            </div>
+
+            <div class="sample-box">
+                <h4>💡 示例 JSON</h4>
+                <pre>{
+  "name": "张三",
+  "age": 25,
+  "skills": ["JavaScript", "Python", "Node.js"],
+  "address": {
+    "city": "北京",
+    "district": "朝阳区"
+  }
+}</pre>
+                <button onclick="loadSample()">📥 使用示例</button>
+            </div>
+
+            <div class="tool-container">
+                <div class="input-group">
+                    <label for="jsonInput">输入 JSON</label>
+                    <textarea id="jsonInput" placeholder="请输入 JSON 文本..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="validateBtn">✅ 校验</button>
+                    <button class="btn btn-primary" id="formatBtn">🎨 格式化</button>
+                    <button class="btn btn-secondary" id="clearBtn">🗑️ 清空</button>
+                </div>
+
+                <div id="statusBox" style="display: none;"></div>
+                <div id="errorDetail" style="display: none;"></div>
+                <div id="formattedResult" style="display: none;"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== 页脚 ===== -->
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script>
+        const sampleJSON = `{
+  "name": "张三",
+  "age": 25,
+  "skills": ["JavaScript", "Python", "Node.js"],
+  "address": {
+    "city": "北京",
+    "district": "朝阳区"
+  }
+}`;
+
+        function loadSample() {
+            document.getElementById('jsonInput').value = sampleJSON;
+            document.getElementById('jsonInput').focus();
+        }
+
+        function showStatus(type, title, message) {
+            const statusBox = document.getElementById('statusBox');
+            statusBox.style.display = 'flex';
+            statusBox.className = `status-box ${type}`;
+            statusBox.innerHTML = `
+                <span class="icon">${type === 'success' ? '✅' : '❌'}</span>
+                <div class="message">
+                    <h4>${title}</h4>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function hideStatus() {
+            document.getElementById('statusBox').style.display = 'none';
+            document.getElementById('errorDetail').style.display = 'none';
+            document.getElementById('formattedResult').style.display = 'none';
+        }
+
+        async function validateJSON() {
+            const input = document.getElementById('jsonInput').value.trim();
+            const textarea = document.getElementById('jsonInput');
+
+            if (!input) {
+                showStatus('error', '输入为空', '请输入需要校验的 JSON 文本');
+                textarea.className = 'error';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/convert/json-validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: { text: input } })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.data.valid) {
+                    showStatus('success', 'JSON 格式正确', '该 JSON 文本格式有效');
+                    textarea.className = 'success';
+                } else {
+                    const error = result.error;
+                    showStatus('error', 'JSON 格式错误', error.error || '未知错误');
+
+                    if (error.errorLine !== null) {
+                        document.getElementById('errorDetail').style.display = 'block';
+                        document.getElementById('errorDetail').innerHTML = `
+                            <h4>🔍 错误详情</h4>
+                            <table>
+                                <tr><td>错误信息</td><td>${error.error}</td></tr>
+                                <tr><td>错误位置</td><td>第 ${error.errorLine} 行，第 ${error.errorColumn} 列</td></tr>
+                                <tr><td>字符位置</td><td>${error.errorPosition}</td></tr>
+                            </table>
+                        `;
+                    }
+                    textarea.className = 'error';
+                }
+            } catch (error) {
+                showStatus('error', '网络错误', error.message);
+                textarea.className = 'error';
+            }
+        }
+
+        async function formatJSON() {
+            const input = document.getElementById('jsonInput').value.trim();
+            const textarea = document.getElementById('jsonInput');
+
+            if (!input) {
+                showStatus('error', '输入为空', '请输入需要格式化的 JSON 文本');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/convert/json-format', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: { text: input }, options: { indent: 2 } })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showStatus('success', '格式化成功', 'JSON 已格式化');
+                    textarea.className = 'success';
+
+                    document.getElementById('formattedResult').style.display = 'block';
+                    document.getElementById('formattedResult').innerHTML = `
+                        <h4>📄 格式化结果</h4>
+                        <pre>${escapeHtml(result.data.result)}</pre>
+                    `;
+
+                    // 更新输入框为格式化后的内容
+                    textarea.value = result.data.result;
+                } else {
+                    showStatus('error', '格式化失败', result.error || 'JSON 格式错误');
+                    textarea.className = 'error';
+                }
+            } catch (error) {
+                showStatus('error', '网络错误', error.message);
+                textarea.className = 'error';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.getElementById('validateBtn').addEventListener('click', validateJSON);
+        document.getElementById('formatBtn').addEventListener('click', formatJSON);
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('jsonInput').value = '';
+            document.getElementById('jsonInput').className = '';
+            hideStatus();
+        });
+
+        // 实时校验（可选）
+        let debounceTimer;
+        document.getElementById('jsonInput').addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const input = document.getElementById('jsonInput').value.trim();
+                if (input) {
+                    validateJSON();
+                } else {
+                    hideStatus();
+                    document.getElementById('jsonInput').className = '';
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

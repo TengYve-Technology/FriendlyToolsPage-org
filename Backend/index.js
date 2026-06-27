@@ -80,11 +80,13 @@ app.use((req, res, next) => {
     next();
 });
 
-app.listen(PORT, () => {
-    console.log(`✅ 服务器已启动: http://localhost:${PORT}`);
-    console.log(`📡 前端页面: http://localhost:${PORT}/index.html`);
-    console.log(`🗄️ 数据库文件: ${dbPath}`);
-    console.log(`总之，服务器启动成功！`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`✅ 服务器已启动: http://localhost:${PORT}`);
+        console.log(`📡 前端页面: http://localhost:${PORT}/index.html`);
+        console.log(`🗄️ 数据库文件: ${dbPath}`);
+        console.log(`总之，服务器启动成功！`);
+    });
+}
 
 module.exports = app;

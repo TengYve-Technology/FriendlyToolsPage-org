@@ -46,5 +46,37 @@
         "desc": "格式化·压缩·校验",
         "badge": "常用",
         "link": "json-format.html"
+    },
+    {
+        "id": "json-validate",
+        "icon": "✅",
+        "title": "JSON校验器",
+        "desc": "验证JSON格式·错误定位",
+        "badge": "新",
+        "link": "json-validate.html"
+    },
+    {
+        "id": "url-encode",
+        "icon": "🔗",
+        "title": "URL编码解码",
+        "desc": "URL参数编码·特殊字符转换",
+        "badge": "",
+        "link": "url-encode.html"
+    },
+    {
+        "id": "html-entity",
+        "icon": "🌐",
+        "title": "HTML实体编解码",
+        "desc": "HTML特殊字符编码解码",
+        "badge": "新",
+        "link": "html-entity.html"
+    },
+    {
+        "id": "regex-test",
+        "icon": "🔍",
+        "title": "正则表达式测试",
+        "desc": "实时匹配·分组提取·高亮显示",
+        "badge": "新",
+        "link": "regex-test.html"
     }
 ]

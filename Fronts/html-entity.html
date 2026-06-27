@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🌐 HTML实体编解码 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 16px;
+            transition: color 0.2s;
+        }
+
+        .back-home:hover {
+            color: #f59e0b;
+        }
+
+        .page-header .subtitle {
+            color: #64748b;
+            font-size: 15px;
+            margin-top: 4px;
+        }
+
+        .tool-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .mode-btn.active {
+            border-color: #f59e0b;
+            background: #fffbeb;
+            color: #f59e0b;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .result-section {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        .result-section h3 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .result-content {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .result-content.error {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .copy-btn {
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #059669;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h4 {
+            margin: 0 0 8px 0;
+            color: #1e40af;
+            font-size: 14px;
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: 13px;
+            color: #1e40af;
+            line-height: 1.6;
+        }
+
+        .char-table {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .char-item {
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .char-item .original {
+            color: #64748b;
+        }
+
+        .char-item .arrow {
+            color: #f59e0b;
+            margin: 4px 0;
+        }
+
+        .char-item .encoded {
+            color: #059669;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 导航栏 ===== -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🌐</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">HTML实体编解码</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== 主内容 ===== -->
+    <main class="main-content">
+        <div class="container">
+            <a href="text.html" class="back-home">← 返回文本处理</a>
+
+            <div class="page-header">
+                <h1>🌐 HTML实体编解码</h1>
+                <p class="subtitle">将 HTML 特殊字符转换为实体编码，或反向解码</p>
+            </div>
+
+            <div class="info-box">
+                <h4>💡 什么是 HTML 实体编码？</h4>
+                <p>HTML 实体是一段以 &amp; 符号开头、; 符号结尾的字符串，用于表示预留字符或特殊字符。</p>
+                <div class="char-table">
+                    <div class="char-item">
+                        <div class="original">&lt;</div>
+                        <div class="arrow">→</div>
+                        <div class="encoded">&amp;lt;</div>
+                    </div>
+                    <div class="char-item">
+                        <div class="original">&gt;</div>
+                        <div class="arrow">→</div>
+                        <div class="encoded">&amp;gt;</div>
+                    </div>
+                    <div class="char-item">
+                        <div class="original">&amp;</div>
+                        <div class="arrow">→</div>
+                        <div class="encoded">&amp;amp;</div>
+                    </div>
+                    <div class="char-item">
+                        <div class="original">"</div>
+                        <div class="arrow">→</div>
+                        <div class="encoded">&amp;quot;</div>
+                    </div>
+                    <div class="char-item">
+                        <div class="original">'</div>
+                        <div class="arrow">→</div>
+                        <div class="encoded">&amp;#39;</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tool-container">
+                <div class="mode-toggle">
+                    <button class="mode-btn active" data-mode="encode">🔒 编码</button>
+                    <button class="mode-btn" data-mode="decode">🔓 解码</button>
+                </div>
+
+                <div class="input-group">
+                    <label for="inputText">输入文本</label>
+                    <textarea id="inputText" placeholder="请输入需要处理的文本..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="processBtn">转换</button>
+                    <button class="btn btn-secondary" id="clearBtn">清空</button>
+                </div>
+
+                <div class="result-section">
+                    <h3>转换结果</h3>
+                    <div class="result-content" id="resultContent">等待输入...</div>
+                    <button class="copy-btn" id="copyBtn" style="display: none;">📋 复制结果</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== 页脚 ===== -->
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script>
+        let currentMode = 'encode';
+
+        // 模式切换
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                document.getElementById('inputText').placeholder =
+                    currentMode === 'encode'
+                        ? '请输入需要编码的文本...'
+                        : '请输入需要解码的 HTML 实体...';
+            });
+        });
+
+        // 处理按钮
+        document.getElementById('processBtn').addEventListener('click', async () => {
+            const inputText = document.getElementById('inputText').value.trim();
+            const resultContent = document.getElementById('resultContent');
+            const copyBtn = document.getElementById('copyBtn');
+
+            if (!inputText) {
+                resultContent.textContent = '请输入文本';
+                resultContent.classList.add('error');
+                copyBtn.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/convert/html-entity', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data: { text: inputText },
+                        options: { mode: currentMode }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    resultContent.textContent = result.data.result;
+                    resultContent.classList.remove('error');
+                    copyBtn.style.display = 'block';
+                } else {
+                    resultContent.textContent = '处理失败: ' + (result.error || '未知错误');
+                    resultContent.classList.add('error');
+                    copyBtn.style.display = 'none';
+                }
+            } catch (error) {
+                resultContent.textContent = '网络错误: ' + error.message;
+                resultContent.classList.add('error');
+                copyBtn.style.display = 'none';
+            }
+        });
+
+        // 清空按钮
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('inputText').value = '';
+            document.getElementById('resultContent').textContent = '等待输入...';
+            document.getElementById('resultContent').classList.remove('error');
+            document.getElementById('copyBtn').style.display = 'none';
+        });
+
+        // 复制按钮
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const result = document.getElementById('resultContent').textContent;
+            navigator.clipboard.writeText(result).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✅ 已复制';
+                setTimeout(() => {
+                    btn.textContent = '📋 复制结果';
+                }, 2000);
+            });
+        });
+
+        // 回车键快捷转换
+        document.getElementById('inputText').addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                document.getElementById('processBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>

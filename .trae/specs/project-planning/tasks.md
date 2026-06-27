@@ -98,7 +98,7 @@
   - `programmatic` TR-8.2: 运行测试，确认所有功能正常
 - **Notes**: 当前后端所有路由都在 `index.js` 中，建议拆分为多个路由文件
 
-## [ ] Task 9: Vercel 部署验证
+## [x] Task 9: Vercel 部署验证
 - **Priority**: high
 - **Depends On**: Task 1-7
 - **Description**: 
@@ -111,7 +111,7 @@
   - `human-judgement` TR-9.2: 部署后手动测试所有工具功能
 - **Notes**: 需要确保使用相对路径，避免绝对路径导致部署问题
 
-## [ ] Task 10: 实现 URL 编码/解码工具
+## [x] Task 10: 实现 URL 编码/解码工具
 - **Priority**: medium
 - **Depends On**: Task 9
 - **Description**: 
@@ -124,7 +124,7 @@
   - `human-judgement` TR-10.2: 在页面输入含特殊字符的 URL，验证编码和解码结果正确
 - **Notes**: 使用 Node.js 内置 `encodeURIComponent` 和 `decodeURIComponent`
 
-## [ ] Task 11: 实现 Base64 编码/解码工具
+## [x] Task 11: 实现 Base64 编码/解码工具
 - **Priority**: medium
 - **Depends On**: Task 9
 - **Description**: 
