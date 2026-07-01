@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔲 二维码解析 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .tool-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #f5576c; }
+
+        .tool-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .tool-box h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .tool-box .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .upload-area {
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            background: #f8fafc;
+        }
+        .upload-area:hover {
+            border-color: #f5576c;
+            background: #fef2f2;
+        }
+        .upload-area.dragover {
+            border-color: #f5576c;
+            background: #fef2f2;
+            transform: scale(1.01);
+        }
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .upload-text {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .upload-hint {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .preview-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            min-height: 200px;
+        }
+        .preview-box img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .preview-placeholder {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .btn-parse {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .btn-parse:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+        }
+        .btn-parse:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-section {
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .result-section h4 {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+        .result-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+        }
+        .result-text {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #1a1a2e;
+            word-break: break-all;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .result-placeholder {
+            color: #94a3b8;
+            font-size: 14px;
+            text-align: center;
+        }
+        .btn-copy {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 14px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-copy:hover {
+            border-color: #f5576c;
+            color: #f5576c;
+        }
+
+        .loading-text {
+            color: #f5576c;
+            font-size: 14px;
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        .error-text {
+            color: #ef4444;
+            font-size: 14px;
+            text-align: center;
+            padding: 16px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🔲</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">二维码解析</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+
+        <div class="tool-box">
+            <h2>🔲 二维码解析</h2>
+            <p class="desc">上传包含二维码的图片，快速识别其中的文本内容</p>
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📤</div>
+                <div class="upload-text">点击选择图片 或 拖拽图片到此处</div>
+                <div class="upload-hint">支持 PNG、JPG、GIF 等常见图片格式</div>
+                <input type="file" id="fileInput" accept="image/*" />
+            </div>
+
+            <div class="preview-box" id="previewBox">
+                <div class="preview-placeholder" id="previewPlaceholder">等待上传图片...</div>
+                <img id="previewImage" style="display: none;" alt="预览图" />
+            </div>
+
+            <button class="btn-parse" id="btnParse" disabled>🔍 解析二维码</button>
+
+            <div class="result-section">
+                <h4>📋 解析结果</h4>
+                <div class="result-box">
+                    <div class="result-placeholder" id="resultPlaceholder">等待解析...</div>
+                    <div class="result-text" id="resultText" style="display: none;"></div>
+                    <button class="btn-copy" id="btnCopy" style="display: none;">📋 复制</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewPlaceholder = document.getElementById('previewPlaceholder');
+        const previewImage = document.getElementById('previewImage');
+        const btnParse = document.getElementById('btnParse');
+        const resultPlaceholder = document.getElementById('resultPlaceholder');
+        const resultText = document.getElementById('resultText');
+        const btnCopy = document.getElementById('btnCopy');
+
+        let currentImageBase64 = null;
+
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                alert('请选择有效的图片文件');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentImageBase64 = e.target.result;
+                previewImage.src = currentImageBase64;
+                previewImage.style.display = 'block';
+                previewPlaceholder.style.display = 'none';
+                btnParse.disabled = false;
+                resultPlaceholder.textContent = '等待解析...';
+                resultPlaceholder.style.display = 'block';
+                resultText.style.display = 'none';
+                btnCopy.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            handleFile(file);
+        });
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            handleFile(file);
+        });
+
+        async function parseQRCode() {
+            if (!currentImageBase64) {
+                return;
+            }
+
+            btnParse.disabled = true;
+            resultPlaceholder.textContent = '⏳ 解析中...';
+            resultPlaceholder.style.display = 'block';
+            resultText.style.display = 'none';
+            btnCopy.style.display = 'none';
+
+            try {
+                const result = await apiRequest('/api/security/qrcode-parse', {
+                    method: 'POST',
+                    data: { imageBase64: currentImageBase64 }
+                });
+
+                if (result.success) {
+                    const { text, format } = result.data;
+                    resultText.textContent = text;
+                    resultText.style.display = 'block';
+                    resultPlaceholder.style.display = 'none';
+                    btnCopy.style.display = 'block';
+                } else {
+                    resultPlaceholder.textContent = `❌ ${result.error}`;
+                    resultPlaceholder.className = 'error-text';
+                    resultPlaceholder.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('请求后端失败:', err);
+                resultPlaceholder.textContent = '❌ 无法连接到后端服务';
+                resultPlaceholder.className = 'error-text';
+                resultPlaceholder.style.display = 'block';
+            } finally {
+                btnParse.disabled = false;
+            }
+        }
+
+        function copyResult() {
+            const text = resultText.textContent;
+            if (!text) return;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnCopy.textContent;
+                btnCopy.textContent = '✅ 已复制';
+                setTimeout(() => {
+                    btnCopy.textContent = originalText;
+                }, 2000);
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                const originalText = btnCopy.textContent;
+                btnCopy.textContent = '✅ 已复制';
+                setTimeout(() => {
+                    btnCopy.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        btnParse.addEventListener('click', parseQRCode);
+        btnCopy.addEventListener('click', copyResult);
+
+        console.log('🔲 二维码解析工具已加载！');
+    </script>
+</body>
+</html>

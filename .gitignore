@@ -1,0 +1,7 @@
+.env
+.trae/
+*.bak
+api.bak/
+.DS_Store
+Thumbs.db
+*.log

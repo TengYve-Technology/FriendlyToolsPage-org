@@ -19,8 +19,16 @@
         "id": "chart-generate",
         "icon": "📊",
         "title": "图表生成",
-        "desc": "数据可视化·柱状图·折线图",
-        "badge": "开发中",
-        "link": "#"
+        "desc": "数据可视化·柱状图·折线图·饼图",
+        "badge": "",
+        "link": "chart-generate.html"
+    },
+    {
+        "id": "json-yaml",
+        "icon": "🔄",
+        "title": "JSON/YAML转换",
+        "desc": "JSON与YAML互转",
+        "badge": "",
+        "link": "json-yaml.html"
     }
 ]

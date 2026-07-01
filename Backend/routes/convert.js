@@ -1,4 +1,5 @@
 const { successResponse, errorResponse } = require('../utils/response');
+const { extractParams } = require('../utils/params');
 
 // 进制转换字符集
 const CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -30,18 +31,8 @@ module.exports = function(app, dependencies) {
     }
 
     app.post('/api/convert/base', (req, res) => {
-        const { data, options } = req.body;
-        let number, fromBase, toBase;
-        
-        if (data && typeof data === 'object') {
-            number = data.number;
-            fromBase = data.fromBase;
-            toBase = data.toBase;
-        } else {
-            number = req.body.number;
-            fromBase = req.body.fromBase;
-            toBase = req.body.toBase;
-        }
+        const { params } = extractParams(req, ['number', 'fromBase', 'toBase']);
+        const { number, fromBase, toBase } = params;
 
         if (number === undefined || fromBase === undefined || toBase === undefined) {
             return errorResponse(res, '缺少必要参数: number, fromBase, toBase', 10001);
@@ -75,18 +66,8 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/exchange', async (req, res) => {
-        const { data, options } = req.body;
-        let amount, from, to;
-        
-        if (data && typeof data === 'object') {
-            amount = data.amount;
-            from = data.from;
-            to = data.to;
-        } else {
-            amount = req.body.amount;
-            from = req.body.from;
-            to = req.body.to;
-        }
+        const { params } = extractParams(req, ['amount', 'from', 'to']);
+        const { amount, from, to } = params;
 
         if (amount === undefined || !from || !to) {
             return errorResponse(res, '缺少必要参数: amount, from, to', 10001);
@@ -140,20 +121,8 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/unit', (req, res) => {
-        const { data, options } = req.body;
-        let category, from, to, value;
-        
-        if (data && typeof data === 'object') {
-            category = data.category;
-            from = data.from;
-            to = data.to;
-            value = data.value;
-        } else {
-            category = req.body.category;
-            from = req.body.from;
-            to = req.body.to;
-            value = req.body.value;
-        }
+        const { params } = extractParams(req, ['category', 'from', 'to', 'value']);
+        const { category, from, to, value } = params;
 
         if (!category || !from || !to || value === undefined) {
             return errorResponse(res, '缺少必要参数: category, from, to, value', 10001);
@@ -272,20 +241,8 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/time', (req, res) => {
-        const { data, options } = req.body;
-        let mode, value, from, to;
-        
-        if (data && typeof data === 'object') {
-            mode = data.mode;
-            value = data.value;
-            from = data.from;
-            to = data.to;
-        } else {
-            mode = req.body.mode;
-            value = req.body.value;
-            from = req.body.from;
-            to = req.body.to;
-        }
+        const { params } = extractParams(req, ['mode', 'value', 'from', 'to']);
+        const { mode, value, from, to } = params;
 
         if (!mode) {
             return errorResponse(res, '缺少必要参数: mode', 10001);
@@ -370,9 +327,9 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/text-case', (req, res) => {
-        const { data, options } = req.body;
-        const text = (data && data.text !== undefined) ? data.text : req.body.text;
-        const type = (options && options.type) ? options.type : (req.body.type || 'camel');
+        const { params, options } = extractParams(req, ['text'], { type: 'camel' });
+        const { text } = params;
+        const { type } = options;
 
         if (text === undefined || text === null) {
             return errorResponse(res, '缺少必要参数: text', 10001);
@@ -422,9 +379,9 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/ascii', (req, res) => {
-        const { data, options } = req.body;
-        const text = (data && data.text !== undefined) ? data.text : req.body.text;
-        const mode = (options && options.mode) ? options.mode : (req.body.mode || 'encode');
+        const { params, options } = extractParams(req, ['text'], { mode: 'encode' });
+        const { text } = params;
+        const { mode } = options;
 
         if (text === undefined || text === null) {
             return errorResponse(res, '缺少必要参数: text', 10001);
@@ -453,8 +410,8 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/text-stats', (req, res) => {
-        const { data, options } = req.body;
-        const text = (data && data.text !== undefined) ? data.text : req.body.text;
+        const { params } = extractParams(req, ['text']);
+        const { text } = params;
 
         if (text === undefined || text === null) {
             return errorResponse(res, '缺少必要参数: text', 10001);
@@ -488,10 +445,9 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/text-dedup', (req, res) => {
-        const { data, options } = req.body;
-        const text = (data && data.text !== undefined) ? data.text : req.body.text;
-        const separator = (options && options.separator) ? options.separator : (req.body.separator || '\n');
-        const ignoreCase = (options && options.ignoreCase) !== undefined ? options.ignoreCase : (req.body.ignoreCase || false);
+        const { params, options } = extractParams(req, ['text'], { separator: '\n', ignoreCase: false });
+        const { text } = params;
+        const { separator, ignoreCase } = options;
 
         if (text === undefined || text === null) {
             return errorResponse(res, '缺少必要参数: text', 10001);
@@ -527,9 +483,9 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/json-format', (req, res) => {
-        const { data, options } = req.body;
-        const text = (data && data.text !== undefined) ? data.text : req.body.text;
-        const indent = (options && options.indent) ? options.indent : (req.body.indent || 2);
+        const { params, options } = extractParams(req, ['text'], { indent: 2 });
+        const { text } = params;
+        const { indent } = options;
 
         if (text === undefined || text === null) {
             return errorResponse(res, '缺少必要参数: text', 10001);
@@ -551,10 +507,9 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/color', (req, res) => {
-        const { data, options } = req.body;
-        const color = (data && data.color !== undefined) ? data.color : req.body.color;
-        const from = (options && options.from) ? options.from : (req.body.from || 'hex');
-        const to = (options && options.to) ? options.to : (req.body.to || 'rgb');
+        const { params, options } = extractParams(req, ['color'], { from: 'hex', to: 'rgb' });
+        const { color } = params;
+        const { from, to } = options;
 
         if (color === undefined || color === null) {
             return errorResponse(res, '缺少必要参数: color', 10001);
@@ -665,10 +620,9 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/csv-to-json', (req, res) => {
-        const { data, options } = req.body;
-        const csv = (data && data.text !== undefined) ? data.text : req.body.text;
-        const delimiter = (options && options.delimiter) ? options.delimiter : (req.body.delimiter || ',');
-        const hasHeader = (options && options.hasHeader) !== undefined ? options.hasHeader : (req.body.hasHeader !== false);
+        const { params, options } = extractParams(req, ['text'], { delimiter: ',', hasHeader: true });
+        const { text: csv } = params;
+        const { delimiter, hasHeader } = options;
 
         if (csv === undefined || csv === null) {
             return errorResponse(res, '缺少必要参数: text (CSV内容)', 10001);
@@ -709,9 +663,9 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/json-to-csv', (req, res) => {
-        const { data, options } = req.body;
-        const jsonText = (data && data.text !== undefined) ? data.text : req.body.text;
-        const delimiter = (options && options.delimiter) ? options.delimiter : (req.body.delimiter || ',');
+        const { params, options } = extractParams(req, ['text'], { delimiter: ',' });
+        const { text: jsonText } = params;
+        const { delimiter } = options;
 
         if (jsonText === undefined || jsonText === null) {
             return errorResponse(res, '缺少必要参数: text (JSON内容)', 10001);
@@ -764,8 +718,8 @@ module.exports = function(app, dependencies) {
 
     // URL 编码/解码
     app.post('/api/convert/url-encode', (req, res) => {
-        const { data, options } = req.body;
-        const text = (data && data.text !== undefined) ? data.text : req.body.text;
+        const { params } = extractParams(req, ['text']);
+        const { text } = params;
 
         if (text === undefined || text === null) {
             return errorResponse(res, '缺少必要参数: text', 10001);
@@ -786,8 +740,8 @@ module.exports = function(app, dependencies) {
     });
 
     app.post('/api/convert/url-decode', (req, res) => {
-        const { data, options } = req.body;
-        const text = (data && data.text !== undefined) ? data.text : req.body.text;
+        const { params } = extractParams(req, ['text']);
+        const { text } = params;
 
         if (text === undefined || text === null) {
             return errorResponse(res, '缺少必要参数: text', 10001);
@@ -809,9 +763,9 @@ module.exports = function(app, dependencies) {
 
     // Base64 编码/解码
     app.post('/api/convert/base64', (req, res) => {
-        const { data, options } = req.body;
-        const text = (data && data.text !== undefined) ? data.text : req.body.text;
-        const mode = (options && options.mode) ? options.mode : (req.body.mode || 'encode');
+        const { params, options } = extractParams(req, ['text'], { mode: 'encode' });
+        const { text } = params;
+        const { mode } = options;
 
         if (text === undefined || text === null) {
             return errorResponse(res, '缺少必要参数: text', 10001);
@@ -840,9 +794,9 @@ module.exports = function(app, dependencies) {
 
     // HTML 实体编码/解码
     app.post('/api/convert/html-entity', (req, res) => {
-        const { data, options } = req.body;
-        const text = (data && data.text !== undefined) ? data.text : req.body.text;
-        const mode = (options && options.mode) ? options.mode : (req.body.mode || 'encode');
+        const { params, options } = extractParams(req, ['text'], { mode: 'encode' });
+        const { text } = params;
+        const { mode } = options;
 
         if (text === undefined || text === null) {
             return errorResponse(res, '缺少必要参数: text', 10001);
@@ -888,8 +842,8 @@ module.exports = function(app, dependencies) {
 
     // JSON 校验
     app.post('/api/convert/json-validate', (req, res) => {
-        const { data, options } = req.body;
-        const text = (data && data.text !== undefined) ? data.text : req.body.text;
+        const { params } = extractParams(req, ['text']);
+        const { text } = params;
 
         if (text === undefined || text === null) {
             return errorResponse(res, '缺少必要参数: text', 10001);
@@ -941,12 +895,9 @@ module.exports = function(app, dependencies) {
 
     // 日期计算器
     app.post('/api/convert/date-calc', (req, res) => {
-        const { data, options } = req.body;
-        const mode = (options && options.mode) ? options.mode : (req.body.mode || 'diff');
-        const date1 = (data && data.date1) ? data.date1 : req.body.date1;
-        const date2 = (data && data.date2) ? data.date2 : req.body.date2;
-        const count = (options && options.count) ? options.count : (req.body.count || 0);
-        const unit = (options && options.unit) ? options.unit : (req.body.unit || 'day');
+        const { params, options } = extractParams(req, ['date1', 'date2'], { mode: 'diff', count: 0, unit: 'day' });
+        const { date1, date2 } = params;
+        const { mode, count, unit } = options;
 
         try {
             let result;

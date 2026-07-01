@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📱 二维码生成 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .tool-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #f5576c; }
+
+        .tool-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .tool-box h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .tool-box .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+        .input-group textarea {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            resize: vertical;
+            min-height: 100px;
+            line-height: 1.6;
+        }
+        .input-group textarea:focus {
+            border-color: #f5576c;
+        }
+        .input-group input[type="number"] {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .input-group input[type="number"]:focus {
+            border-color: #f5576c;
+        }
+        .input-group input[type="color"] {
+            width: 60px;
+            height: 40px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 2px;
+            background: #fff;
+        }
+        .color-row {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .color-item span {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .options-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .btn-generate {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 4px;
+        }
+        .btn-generate:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+        }
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .result-section h4 {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+        .result-box {
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 280px;
+        }
+        .result-box img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .result-placeholder {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .btn-download {
+            margin-top: 16px;
+            padding: 10px 24px;
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .btn-download:hover {
+            border-color: #f5576c;
+            color: #f5576c;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .result-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .loading-text {
+            color: #f5576c;
+            font-size: 14px;
+            text-align: center;
+            padding: 16px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">📱</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">二维码生成</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+
+        <div class="tool-box">
+            <h2>📱 二维码生成</h2>
+            <p class="desc">将文本或链接转换为二维码图片，支持自定义大小和颜色</p>
+
+            <div class="input-group">
+                <label for="textInput">输入文本</label>
+                <textarea id="textInput" placeholder="请输入要生成二维码的文本或链接..."></textarea>
+            </div>
+
+            <div class="options-row">
+                <div class="input-group">
+                    <label for="sizeInput">大小（像素）</label>
+                    <input type="number" id="sizeInput" value="256" min="64" max="2048" />
+                </div>
+                <div class="input-group">
+                    <label>颜色设置</label>
+                    <div class="color-row">
+                        <div class="color-item">
+                            <input type="color" id="fgColorInput" value="#000000" />
+                            <span>前景色</span>
+                        </div>
+                        <div class="color-item">
+                            <input type="color" id="bgColorInput" value="#ffffff" />
+                            <span>背景色</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-generate" id="btnGenerate">🎨 生成二维码</button>
+
+            <div class="result-section">
+                <h4>📤 生成结果</h4>
+                <div class="result-box">
+                    <div class="result-placeholder" id="resultPlaceholder">等待生成...</div>
+                    <img id="resultImage" style="display: none;" alt="二维码" />
+                </div>
+                <div class="result-meta" id="resultMeta" style="display: none;">
+                    <span id="metaSize"></span>
+                    <span id="metaText"></span>
+                </div>
+                <button class="btn-download" id="btnDownload" style="display: none;">⬇️ 下载 PNG 图片</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        const textInput = document.getElementById('textInput');
+        const sizeInput = document.getElementById('sizeInput');
+        const fgColorInput = document.getElementById('fgColorInput');
+        const bgColorInput = document.getElementById('bgColorInput');
+        const btnGenerate = document.getElementById('btnGenerate');
+        const resultPlaceholder = document.getElementById('resultPlaceholder');
+        const resultImage = document.getElementById('resultImage');
+        const resultMeta = document.getElementById('resultMeta');
+        const metaSize = document.getElementById('metaSize');
+        const metaText = document.getElementById('metaText');
+        const btnDownload = document.getElementById('btnDownload');
+
+        let currentImageBase64 = null;
+
+        async function generateQRCode() {
+            const text = textInput.value.trim();
+            const size = parseInt(sizeInput.value) || 256;
+            const fgColor = fgColorInput.value;
+            const bgColor = bgColorInput.value;
+
+            if (!text) {
+                resultPlaceholder.textContent = '请输入文本';
+                resultPlaceholder.style.display = 'block';
+                resultImage.style.display = 'none';
+                resultMeta.style.display = 'none';
+                btnDownload.style.display = 'none';
+                return;
+            }
+
+            btnGenerate.disabled = true;
+            resultPlaceholder.textContent = '⏳ 生成中...';
+            resultPlaceholder.style.display = 'block';
+            resultImage.style.display = 'none';
+            resultMeta.style.display = 'none';
+            btnDownload.style.display = 'none';
+            currentImageBase64 = null;
+
+            try {
+                const result = await apiRequest('/api/security/qrcode-generate', {
+                    method: 'POST',
+                    data: { text },
+                    options: {
+                        size,
+                        fgColor,
+                        bgColor
+                    }
+                });
+
+                if (result.success) {
+                    const { imageBase64, size: qrSize, text: qrText } = result.data;
+                    currentImageBase64 = imageBase64;
+                    resultImage.src = imageBase64;
+                    resultImage.style.display = 'block';
+                    resultPlaceholder.style.display = 'none';
+                    metaSize.textContent = `尺寸: ${qrSize} x ${qrSize}`;
+                    metaText.textContent = `内容长度: ${qrText.length} 字符`;
+                    resultMeta.style.display = 'flex';
+                    btnDownload.style.display = 'block';
+                } else {
+                    resultPlaceholder.textContent = `❌ ${result.error}`;
+                    resultPlaceholder.style.display = 'block';
+                    resultImage.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('请求后端失败:', err);
+                resultPlaceholder.textContent = '❌ 无法连接到后端服务';
+                resultPlaceholder.style.display = 'block';
+                resultImage.style.display = 'none';
+            } finally {
+                btnGenerate.disabled = false;
+            }
+        }
+
+        function downloadImage() {
+            if (!currentImageBase64) return;
+
+            const link = document.createElement('a');
+            link.href = currentImageBase64;
+            link.download = 'qrcode.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        btnGenerate.addEventListener('click', generateQRCode);
+        btnDownload.addEventListener('click', downloadImage);
+
+        textInput.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                generateQRCode();
+            }
+        });
+
+        console.log('📱 二维码生成工具已加载！');
+    </script>
+</body>
+</html>

@@ -36,15 +36,31 @@
         "icon": "📱",
         "title": "二维码生成",
         "desc": "文本/链接生成二维码",
-        "badge": "开发中",
-        "link": "#"
+        "badge": "",
+        "link": "qrcode-generate.html"
     },
     {
         "id": "qrcode-parse",
         "icon": "🔲",
         "title": "二维码解析",
         "desc": "图片识别二维码内容",
-        "badge": "开发中",
-        "link": "#"
+        "badge": "",
+        "link": "qrcode-parse.html"
+    },
+    {
+        "id": "file-hash",
+        "icon": "📂",
+        "title": "文件哈希校验",
+        "desc": "MD5·SHA1·SHA256",
+        "badge": "",
+        "link": "file-hash.html"
+    },
+    {
+        "id": "jwt-parse",
+        "icon": "🎫",
+        "title": "JWT解析",
+        "desc": "Token解码·过期时间",
+        "badge": "",
+        "link": "jwt-parse.html"
     }
 ]

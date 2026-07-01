@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📊 图表生成 · Friendly Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .tool-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #f5576c; }
+
+        .tool-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .tool-box h2 {
+            font-size: 20px;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .tool-box .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .tool-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .tool-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+        .input-group textarea {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            resize: vertical;
+            min-height: 280px;
+            line-height: 1.6;
+        }
+        .input-group textarea:focus {
+            border-color: #f5576c;
+        }
+        .input-group input[type="text"] {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .input-group input[type="text"]:focus {
+            border-color: #f5576c;
+        }
+
+        .chart-type-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .chart-type-btn {
+            padding: 10px 16px;
+            border: 2px solid #e2e8f0;
+            background: #fff;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chart-type-btn:hover {
+            border-color: #f5576c;
+            color: #f5576c;
+        }
+        .chart-type-btn.active {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .btn-example {
+            padding: 10px 20px;
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-example:hover {
+            border-color: #f5576c;
+            color: #f5576c;
+        }
+
+        .btn-generate {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .btn-generate:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+        }
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-section {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .result-section h4 {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+        .result-box {
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            flex: 1;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .chart-wrapper {
+            width: 100%;
+            height: 100%;
+            min-height: 360px;
+        }
+        .result-placeholder {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .btn-download {
+            margin-top: 16px;
+            padding: 10px 24px;
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .btn-download:hover {
+            border-color: #f5576c;
+            color: #f5576c;
+        }
+        .btn-download:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            font-size: 12px;
+            color: #94a3b8;
+            flex-wrap: wrap;
+        }
+        .result-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .loading-text {
+            color: #f5576c;
+            font-size: 14px;
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        .json-error {
+            color: #f5576c;
+            font-size: 12px;
+            margin-top: 4px;
+            min-height: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">📊</span>
+                <span class="logo-text">Friendly Tools</span>
+                <span class="logo-sub">图表生成</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="tool-container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+        <a href="data.html" class="back-link" style="margin-left: 16px;">← 返回数据工具</a>
+
+        <div class="tool-box">
+            <h2>📊 图表生成</h2>
+            <p class="desc">快速生成柱状图、折线图、饼图、环形图，数据可视化从未如此简单</p>
+
+            <div class="tool-layout">
+                <div class="config-section">
+                    <div class="input-group">
+                        <label>图表类型</label>
+                        <div class="chart-type-group" id="chartTypeGroup">
+                            <button class="chart-type-btn active" data-type="bar">📊 柱状图</button>
+                            <button class="chart-type-btn" data-type="line">📈 折线图</button>
+                            <button class="chart-type-btn" data-type="pie">🥧 饼图</button>
+                            <button class="chart-type-btn" data-type="doughnut">🍩 环形图</button>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="titleInput">图表标题（可选）</label>
+                        <input type="text" id="titleInput" placeholder="请输入图表标题..." />
+                    </div>
+
+                    <div class="input-group">
+                        <label>数据（JSON格式）</label>
+                        <div class="btn-row">
+                            <button class="btn-example" id="btnExample">📋 填充示例数据</button>
+                        </div>
+                        <textarea id="dataInput" placeholder='请输入 JSON 格式数据，如：
+{
+  "labels": ["一月", "二月", "三月"],
+  "datasets": [
+    {
+      "label": "销售额",
+      "data": [10, 20, 30]
+    }
+  ]
+}'></textarea>
+                        <div class="json-error" id="jsonError"></div>
+                    </div>
+
+                    <button class="btn-generate" id="btnGenerate">🎨 生成图表</button>
+                </div>
+
+                <div class="result-section">
+                    <h4>📤 生成结果</h4>
+                    <div class="result-box">
+                        <div class="result-placeholder" id="resultPlaceholder">等待生成...</div>
+                        <div class="chart-wrapper" id="chartWrapper" style="display: none;">
+                            <canvas id="chartCanvas"></canvas>
+                        </div>
+                    </div>
+                    <div class="result-meta" id="resultMeta" style="display: none;">
+                        <span id="metaType"></span>
+                        <span id="metaLabels"></span>
+                        <span id="metaDatasets"></span>
+                    </div>
+                    <button class="btn-download" id="btnDownload" style="display: none;">⬇️ 下载 PNG 图片</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 Friendly Tools · 用 ❤️ 和 🍅 打造</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        const chartTypeGroup = document.getElementById('chartTypeGroup');
+        const titleInput = document.getElementById('titleInput');
+        const dataInput = document.getElementById('dataInput');
+        const btnGenerate = document.getElementById('btnGenerate');
+        const btnExample = document.getElementById('btnExample');
+        const resultPlaceholder = document.getElementById('resultPlaceholder');
+        const chartWrapper = document.getElementById('chartWrapper');
+        const resultMeta = document.getElementById('resultMeta');
+        const metaType = document.getElementById('metaType');
+        const metaLabels = document.getElementById('metaLabels');
+        const metaDatasets = document.getElementById('metaDatasets');
+        const btnDownload = document.getElementById('btnDownload');
+        const jsonError = document.getElementById('jsonError');
+
+        let currentChartType = 'bar';
+        let currentChart = null;
+
+        const typeNames = {
+            bar: '柱状图',
+            line: '折线图',
+            pie: '饼图',
+            doughnut: '环形图'
+        };
+
+        const exampleData = {
+            labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
+            datasets: [
+                {
+                    label: '销售额',
+                    data: [65, 59, 80, 81, 56, 55]
+                },
+                {
+                    label: '利润',
+                    data: [28, 48, 40, 19, 36, 27]
+                }
+            ]
+        };
+
+        const pieExampleData = {
+            labels: ['产品A', '产品B', '产品C', '产品D', '产品E'],
+            datasets: [
+                {
+                    label: '销量占比',
+                    data: [30, 25, 20, 15, 10]
+                }
+            ]
+        };
+
+        chartTypeGroup.addEventListener('click', (e) => {
+            const btn = e.target.closest('.chart-type-btn');
+            if (!btn) return;
+
+            document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentChartType = btn.dataset.type;
+        });
+
+        btnExample.addEventListener('click', () => {
+            const data = (currentChartType === 'pie' || currentChartType === 'doughnut') ? pieExampleData : exampleData;
+            dataInput.value = JSON.stringify(data, null, 2);
+            jsonError.textContent = '';
+        });
+
+        function validateJSON() {
+            const text = dataInput.value.trim();
+            if (!text) {
+                jsonError.textContent = '';
+                return null;
+            }
+            try {
+                const parsed = JSON.parse(text);
+                if (!parsed.labels || !Array.isArray(parsed.labels)) {
+                    jsonError.textContent = '缺少 labels 数组';
+                    return null;
+                }
+                if (!parsed.datasets || !Array.isArray(parsed.datasets)) {
+                    jsonError.textContent = '缺少 datasets 数组';
+                    return null;
+                }
+                jsonError.textContent = '';
+                return parsed;
+            } catch (e) {
+                jsonError.textContent = 'JSON 格式错误: ' + e.message;
+                return null;
+            }
+        }
+
+        dataInput.addEventListener('input', validateJSON);
+
+        async function generateChart() {
+            const parsedData = validateJSON();
+            if (!parsedData) {
+                if (!dataInput.value.trim()) {
+                    jsonError.textContent = '请输入数据';
+                }
+                return;
+            }
+
+            const title = titleInput.value.trim();
+
+            btnGenerate.disabled = true;
+            resultPlaceholder.textContent = '⏳ 生成中...';
+            resultPlaceholder.style.display = 'block';
+            chartWrapper.style.display = 'none';
+            resultMeta.style.display = 'none';
+            btnDownload.style.display = 'none';
+
+            if (currentChart) {
+                currentChart.destroy();
+                currentChart = null;
+            }
+
+            try {
+                const result = await apiRequest('/api/data/chart-config', {
+                    method: 'POST',
+                    data: {
+                        labels: parsedData.labels,
+                        datasets: parsedData.datasets
+                    },
+                    options: {
+                        chartType: currentChartType,
+                        title: title
+                    }
+                });
+
+                if (result.success) {
+                    const { chartConfig, chartType, labelCount, datasetCount } = result.data;
+
+                    resultPlaceholder.style.display = 'none';
+                    chartWrapper.style.display = 'block';
+
+                    const ctx = document.getElementById('chartCanvas').getContext('2d');
+                    currentChart = new Chart(ctx, chartConfig);
+
+                    metaType.textContent = `类型: ${typeNames[chartType] || chartType}`;
+                    metaLabels.textContent = `标签数: ${labelCount}`;
+                    metaDatasets.textContent = `数据系列: ${datasetCount}`;
+                    resultMeta.style.display = 'flex';
+                    btnDownload.style.display = 'block';
+                } else {
+                    resultPlaceholder.textContent = `❌ ${result.error}`;
+                    resultPlaceholder.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('请求后端失败:', err);
+                resultPlaceholder.textContent = '❌ 无法连接到后端服务';
+                resultPlaceholder.style.display = 'block';
+            } finally {
+                btnGenerate.disabled = false;
+            }
+        }
+
+        function downloadChart() {
+            if (!currentChart) return;
+
+            const canvas = document.getElementById('chartCanvas');
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `chart-${currentChartType}-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        btnGenerate.addEventListener('click', generateChart);
+        btnDownload.addEventListener('click', downloadChart);
+
+        dataInput.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                generateChart();
+            }
+        });
+
+        btnExample.click();
+
+        console.log('📊 图表生成工具已加载！');
+    </script>
+</body>
+</html>

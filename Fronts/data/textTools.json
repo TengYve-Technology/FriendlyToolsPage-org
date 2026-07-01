@@ -78,5 +78,13 @@
         "desc": "实时匹配·分组提取·高亮显示",
         "badge": "新",
         "link": "regex-test.html"
+    },
+    {
+        "id": "text-diff",
+        "icon": "📝",
+        "title": "文本对比",
+        "desc": "差异对比·高亮显示",
+        "badge": "新",
+        "link": "text-diff.html"
     }
 ]

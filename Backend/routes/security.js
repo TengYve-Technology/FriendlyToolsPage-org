@@ -1,4 +1,7 @@
 const crypto = require('crypto');
+const QRCode = require('qrcode');
+const { Jimp } = require('jimp');
+const jsQR = require('jsqr');
 const { successResponse, errorResponse } = require('../utils/response');
 
 module.exports = function(app, dependencies) {
@@ -178,6 +181,194 @@ module.exports = function(app, dependencies) {
         } catch (error) {
             console.error('❌ AES加解密失败:', error);
             errorResponse(res, 'AES加解密失败: ' + error.message, 10000, 500);
+        }
+    });
+
+    app.post('/api/security/qrcode-generate', (req, res) => {
+        const { data, options } = req.body;
+        const text = (data && data.text !== undefined) ? data.text : req.body.text;
+        const size = (options && options.size) ? options.size : (req.body.size || 256);
+        const margin = (options && options.margin !== undefined) ? options.margin : (req.body.margin !== undefined ? req.body.margin : 2);
+        const fgColor = (options && options.fgColor) ? options.fgColor : (req.body.fgColor || '#000000');
+        const bgColor = (options && options.bgColor) ? options.bgColor : (req.body.bgColor || '#ffffff');
+
+        if (text === undefined || text === null || text === '') {
+            return errorResponse(res, '缺少必要参数: text', 10001);
+        }
+
+        try {
+            const qrSize = parseInt(size) || 256;
+            const qrMargin = parseInt(margin) || 2;
+
+            if (qrSize < 64 || qrSize > 2048) {
+                return errorResponse(res, '二维码大小必须在64-2048像素之间', 10002);
+            }
+
+            QRCode.toDataURL(String(text), {
+                width: qrSize,
+                margin: qrMargin,
+                color: {
+                    dark: fgColor,
+                    light: bgColor
+                }
+            }, (err, url) => {
+                if (err) {
+                    console.error('❌ 二维码生成失败:', err);
+                    return errorResponse(res, '二维码生成失败: ' + err.message, 10000, 500);
+                }
+                successResponse(res, {
+                    imageBase64: url,
+                    size: qrSize,
+                    text: String(text)
+                });
+            });
+        } catch (error) {
+            console.error('❌ 二维码生成失败:', error);
+            errorResponse(res, '二维码生成失败: ' + error.message, 10000, 500);
+        }
+    });
+
+    app.post('/api/security/qrcode-parse', async (req, res) => {
+        const { data } = req.body;
+        const imageBase64 = (data && data.imageBase64 !== undefined) ? data.imageBase64 : req.body.imageBase64;
+
+        if (!imageBase64) {
+            return errorResponse(res, '缺少必要参数: imageBase64', 10001);
+        }
+
+        try {
+            const base64Data = String(imageBase64).replace(/^data:image\/\w+;base64,/, '');
+            const buffer = Buffer.from(base64Data, 'base64');
+
+            const image = await Jimp.read(buffer);
+            const width = image.bitmap.width;
+            const height = image.bitmap.height;
+            
+            const imageData = new Uint8ClampedArray(image.bitmap.data);
+
+            const code = jsQR(imageData, width, height);
+
+            if (code) {
+                successResponse(res, {
+                    text: code.data,
+                    format: 'QR_CODE'
+                });
+            } else {
+                errorResponse(res, '未检测到二维码', 10012);
+            }
+        } catch (error) {
+            console.error('❌ 二维码解析失败:', error);
+            if (error.message && error.message.includes('MIME')) {
+                errorResponse(res, '无效的图片格式', 10013);
+            } else {
+                errorResponse(res, '二维码解析失败: ' + error.message, 10000, 500);
+            }
+        }
+    });
+
+    app.post('/api/security/file-hash', (req, res) => {
+        const { data } = req.body;
+        const fileBase64 = (data && data.fileBase64 !== undefined) ? data.fileBase64 : req.body.fileBase64;
+        const fileName = (data && data.fileName !== undefined) ? data.fileName : req.body.fileName;
+
+        if (!fileBase64) {
+            return errorResponse(res, '缺少必要参数: fileBase64', 10001);
+        }
+
+        try {
+            const base64Data = String(fileBase64).replace(/^data:.*?;base64,/, '');
+            const buffer = Buffer.from(base64Data, 'base64');
+
+            const md5 = crypto.createHash('md5').update(buffer).digest('hex');
+            const sha1 = crypto.createHash('sha1').update(buffer).digest('hex');
+            const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+
+            successResponse(res, {
+                md5,
+                sha1,
+                sha256,
+                fileName: fileName || 'unknown',
+                fileSize: buffer.length
+            });
+        } catch (error) {
+            console.error('❌ 文件哈希计算失败:', error);
+            errorResponse(res, '文件哈希计算失败: ' + error.message, 10000, 500);
+        }
+    });
+
+    app.post('/api/security/jwt-parse', (req, res) => {
+        const { data } = req.body;
+        const token = (data && data.token !== undefined) ? data.token : req.body.token;
+
+        if (token === undefined || token === null || token === '') {
+            return errorResponse(res, '缺少必要参数: token', 10001);
+        }
+
+        try {
+            const tokenStr = String(token).trim();
+            const parts = tokenStr.split('.');
+
+            if (parts.length !== 3) {
+                return errorResponse(res, '无效的 JWT 格式：Token 必须包含三部分（Header.Payload.Signature），用 . 分隔', 10014);
+            }
+
+            const [headerRaw, payloadRaw, signatureRaw] = parts;
+
+            function base64UrlDecode(str) {
+                let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+                const padLength = (4 - (base64.length % 4)) % 4;
+                base64 += '='.repeat(padLength);
+                return Buffer.from(base64, 'base64').toString('utf8');
+            }
+
+            let header, payload;
+            try {
+                const headerJson = base64UrlDecode(headerRaw);
+                header = JSON.parse(headerJson);
+            } catch (e) {
+                return errorResponse(res, 'Header 解析失败：无效的 Base64Url 或 JSON 格式', 10015);
+            }
+
+            try {
+                const payloadJson = base64UrlDecode(payloadRaw);
+                payload = JSON.parse(payloadJson);
+            } catch (e) {
+                return errorResponse(res, 'Payload 解析失败：无效的 Base64Url 或 JSON 格式', 10016);
+            }
+
+            function formatDate(timestamp) {
+                if (timestamp === undefined || timestamp === null) return null;
+                const date = new Date(timestamp * 1000);
+                return date.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+
+            const now = Math.floor(Date.now() / 1000);
+            const isExpired = payload.exp !== undefined ? now > payload.exp : false;
+            const expiresAt = formatDate(payload.exp);
+            const issuedAt = formatDate(payload.iat);
+
+            successResponse(res, {
+                header,
+                payload,
+                signature: signatureRaw,
+                headerRaw,
+                payloadRaw,
+                signatureRaw,
+                isExpired,
+                expiresAt,
+                issuedAt,
+                tokenValid: true
+            });
+        } catch (error) {
+            console.error('❌ JWT 解析失败:', error);
+            errorResponse(res, 'JWT 解析失败: ' + error.message, 10000, 500);
         }
     });
 
