@@ -1,5 +1,6 @@
 .env
 .trae/
+.trae
 *.bak
 api.bak/
 .DS_Store
