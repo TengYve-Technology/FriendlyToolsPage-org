@@ -24,74 +24,102 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       # ============================================================
-      # Step 2: 克隆组织仓库（目标）
-      # ============================================================
-      - name: 克隆组织仓库
-        run: |
-          git clone https://${{ secrets.PERSONAL_TOKEN }}@github.com/TengYve-Technology/FriendlyToolsPage-org.git target
-
-      # ============================================================
-      # Step 3: 克隆个人仓库（源）
+      # Step 2: 克隆个人仓库（源）
       # ============================================================
       - name: 克隆个人仓库
         run: |
           git clone https://${{ secrets.PERSONAL_TOKEN }}@github.com/YLZ2013git/FriendlyToolsPage.git source
 
       # ============================================================
-      # Step 4: 检查组织仓库是否有新提交（自上次同步以来）
+      # Step 3: 克隆组织仓库（目标）
       # ============================================================
-      - name: 检查组织仓库是否有新提交
-        id: check_changes
+      - name: 克隆组织仓库
+        run: |
+          git clone https://${{ secrets.PERSONAL_TOKEN }}@github.com/TengYve-Technology/FriendlyToolsPage-org.git target
+
+      # ============================================================
+      # Step 4: 记录同步前的状态
+      # ============================================================
+      - name: 记录组织仓库当前状态
+        id: pre_sync_state
         run: |
           cd target
-
           # 获取当前组织仓库的 HEAD commit SHA
-          TARGET_HEAD=$(git rev-parse HEAD)
+          echo "target_head=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          # 获取当前组织仓库的 commit 数量（用于日志）
+          echo "target_commit_count=$(git rev-list --count HEAD)" >> $GITHUB_OUTPUT
 
-          # 获取源仓库的 HEAD commit SHA
-          cd ../source
-          SOURCE_HEAD=$(git rev-parse HEAD)
+      # ============================================================
+      # Step 5: 执行同步（使用 force-with-lease 安全推送）
+      # ============================================================
+      - name: 执行同步
+        id: sync_step
+        continue-on-error: true  # 允许失败，以便后续步骤处理
+        run: |
+          cd source
+          
+          # 设置目标仓库地址
+          git remote set-url origin https://${{ secrets.PERSONAL_TOKEN }}@github.com/TengYve-Technology/FriendlyToolsPage-org.git
+          
+          # 使用 --force-with-lease 替代 --mirror，更安全
+          # 如果远程有新的提交，这个命令会失败，而不会覆盖别人的工作
+          git push --force-with-lease origin main
+          
+          echo "✅ 同步成功"
+          echo "sync_success=true" >> $GITHUB_OUTPUT
 
-          # 如果两个 HEAD 相同，说明没有新提交，跳过检测
-          if [ "$TARGET_HEAD" == "$SOURCE_HEAD" ]; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "两个仓库 HEAD 相同，无新提交"
-            exit 0
-          fi
-
-          # 检查组织仓库是否有非合并提交（即有人直接 push 了代码）
-          cd ../target
-          # 获取从上次同步到现在的所有提交（排除合并提交）
-          NEW_COMMITS=$(git log --oneline origin/main..HEAD --no-merges 2>/dev/null || echo "")
-
-          if [ -n "$NEW_COMMITS" ]; then
+      # ============================================================
+      # Step 6: 如果同步失败，检查是否是因为远程有新提交
+      # ============================================================
+      - name: 检查同步失败原因
+        id: check_failure
+        if: steps.sync_step.outcome == 'failure'
+        run: |
+          cd target
+          
+          # 获取远程最新状态
+          git fetch origin
+          
+          # 获取当前远程 main 分支的 commit SHA
+          REMOTE_MAIN=$(git rev-parse origin/main)
+          
+          # 获取同步前记录的 HEAD
+          PREV_HEAD="${{ steps.pre_sync_state.outputs.target_head }}"
+          
+          # 如果远程 HEAD 变了，说明有人推送了新代码
+          if [ "$REMOTE_MAIN" != "$PREV_HEAD" ]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
-            # 将新提交列表保存到输出，用于后续 Issue 创建
-            echo "new_commits<<EOF" >> $GITHUB_OUTPUT
-            echo "$NEW_COMMITS" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-            echo "检测到新提交，数量：$(echo "$NEW_COMMITS" | wc -l)"
+            echo "检测到远程有新提交，产生冲突"
+            
+            # 获取新的提交列表
+            NEW_COMMITS=$(git log --oneline $PREV_HEAD..$REMOTE_MAIN --no-merges 2>/dev/null || echo "")
+            if [ -n "$NEW_COMMITS" ]; then
+              echo "new_commits<<EOF" >> $GITHUB_OUTPUT
+              echo "$NEW_COMMITS" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            fi
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "未检测到新提交"
+            echo "同步失败但不是因为远程有新提交，可能是其他原因"
           fi
 
       # ============================================================
-      # Step 5: 如果有新提交，创建 Issue 通知
+      # Step 7: 如果有冲突，创建 Issue 通知
       # ============================================================
       - name: 创建冲突通知 Issue
-        if: steps.check_changes.outputs.has_changes == 'true'
+        if: steps.check_failure.outputs.has_changes == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PERSONAL_TOKEN }}
           script: |
-            const newCommits = `${{ steps.check_changes.outputs.new_commits }}`;
+            const newCommits = `${{ steps.check_failure.outputs.new_commits || '（无法获取具体提交列表，请手动检查）' }}`;
             const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+            const runUrl = `${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
 
             const issueBody = `
             ## ⚠️ 同步冲突检测报告
 
-            组织仓库 **FriendlyToolsPage-org** 在本次同步周期内检测到了新的提交，与个人仓库 **FriendlyToolsPage** 的代码产生冲突风险。
+            组织仓库 **FriendlyToolsPage-org** 在本次同步周期内检测到了新的提交，与个人仓库 **FriendlyToolsPage** 的代码产生冲突。
 
             ---
 
@@ -105,13 +133,16 @@ jobs:
             ### 🔧 请选择处理方式
 
             1. **保留这些提交** → 请手动将组织仓库的变更合并到个人仓库中，然后关闭此 Issue
-            2. **丢弃这些提交** → 请重置组织仓库到同步状态（联系管理员），然后关闭此 Issue
+               - 操作步骤：将组织仓库的最新代码 pull 到个人仓库，解决冲突后 push
+            2. **丢弃这些提交** → 强制将组织仓库重置为个人仓库的最新状态
+               - 操作步骤：在组织仓库执行 \`git reset --hard <个人仓库的commit>\` 并 push
 
             ---
 
             ### 📅 检测信息
             - 检测时间：${now}
-            - 触发方式：${{ github.event_name == 'schedule' && '定时任务' || '手动触发' }}
+            - 触发方式：${{ github.event_name == 'schedule' && '⏰ 定时任务' : '👆 手动触发' }}
+            - 相关执行：${runUrl}
 
             ---
 
@@ -128,34 +159,25 @@ jobs:
 
             console.log(`✅ Issue 已创建：${issue.data.html_url}`);
 
-            // 在 Issue 中 @ 通知组织 Owner（替换成实际的 Owner 用户名）
+            // 添加评论 @ 相关人员
             await github.rest.issues.createComment({
               owner: 'TengYve-Technology',
               repo: 'FriendlyToolsPage-org',
               issue_number: issue.data.number,
-              body: `@TengYve-Technology/owners 请查看此冲突报告并处理 🙏`
+              body: `@TengYve-Technology/owners 请查看此冲突报告并处理 🙏\n\n如需重置组织仓库到个人仓库的最新状态，请在确认后关闭此 Issue，下次同步将自动恢复。`
             });
 
       # ============================================================
-      # Step 6: 如果没有冲突，执行同步
+      # Step 8: 同步成功，更新状态并清理旧的冲突 Issue
       # ============================================================
-      - name: 执行同步（无冲突）
-        if: steps.check_changes.outputs.has_changes == 'false'
-        run: |
-          cd source
-          git remote set-url origin https://${{ secrets.PERSONAL_TOKEN }}@github.com/TengYve-Technology/FriendlyToolsPage-org.git
-          git push --mirror origin
-          echo "✅ 同步完成，无冲突"
-
-      # ============================================================
-      # Step 7: 同步成功后，关闭所有已解决的冲突 Issue（可选）
-      # ============================================================
-      - name: 同步成功后关闭旧冲突 Issue
-        if: steps.check_changes.outputs.has_changes == 'false'
+      - name: 同步成功 - 清理旧冲突 Issue
+        if: steps.sync_step.outputs.sync_success == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PERSONAL_TOKEN }}
           script: |
+            const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+            
             // 查找所有打开的 sync-conflict Issue
             const issues = await github.rest.issues.listForRepo({
               owner: 'TengYve-Technology',
@@ -164,16 +186,42 @@ jobs:
               state: 'open'
             });
 
-            // 如果存在旧的冲突 Issue，添加评论提示但保留不关闭
-            // （让 Owner 手动关闭，保持人工决策）
             if (issues.data.length > 0) {
               for (const issue of issues.data) {
+                // 为每个旧的冲突 Issue 添加评论
                 await github.rest.issues.createComment({
                   owner: 'TengYve-Technology',
                   repo: 'FriendlyToolsPage-org',
                   issue_number: issue.number,
-                  body: `🔄 新的同步已成功完成（${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}）。\n\n如果此冲突已解决，请手动关闭此 Issue。`
+                  body: `✅ **同步已成功恢复**（${now}）\n\n之前的冲突已解决或已被覆盖，此 Issue 现在可以关闭了。\n\n如果问题仍然存在，请重新打开此 Issue 或创建新的 Issue。`
                 });
                 console.log(`💬 已在 Issue #${issue.number} 中添加评论`);
               }
+            } else {
+              console.log('没有找到需要清理的旧冲突 Issue');
             }
+
+      # ============================================================
+      # Step 9: 如果同步失败但不是冲突（如网络错误等），发送警告
+      # ============================================================
+      - name: 同步失败 - 其他错误警告
+        if: steps.sync_step.outcome == 'failure' && steps.check_failure.outputs.has_changes != 'true'
+        run: |
+          echo "⚠️ 同步失败，但原因不是远程有新提交"
+          echo "请检查："
+          echo "1. PERSONAL_TOKEN 是否有效"
+          echo "2. 网络连接是否正常"
+          echo "3. 仓库是否存在"
+          echo "详情请查看 Actions 日志"
+          exit 1
+
+      # ============================================================
+      # Step 10: 同步成功日志
+      # ============================================================
+      - name: 同步完成日志
+        if: steps.sync_step.outputs.sync_success == 'true'
+        run: |
+          echo "✅ 同步完成，无冲突"
+          echo "  源仓库: YLZ2013git/FriendlyToolsPage"
+          echo "  目标仓库: TengYve-Technology/FriendlyToolsPage-org"
+          echo "  时间: $(date '+%Y-%m-%d %H:%M:%S %Z')"
