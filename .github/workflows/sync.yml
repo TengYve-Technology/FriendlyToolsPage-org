@@ -1,22 +1,20 @@
-name: 从个人仓库同步（带冲突检测与Issue通知）
+name: 从个人仓库同步（强制覆盖）
 
 on:
   schedule:
-    # 每天 UTC 时间 0:00（北京时间早上 8:00）运行
     - cron: '0 0 * * *'
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 permissions:
   contents: write
   issues: write
-  actions: read
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       # ============================================================
-      # Step 1: 配置 Git 用户信息
+      # Step 1: 配置 Git
       # ============================================================
       - name: 配置 Git
         run: |
@@ -38,76 +36,70 @@ jobs:
           git clone https://${{ secrets.PERSONAL_TOKEN }}@github.com/TengYve-Technology/FriendlyToolsPage-org.git target
 
       # ============================================================
-      # Step 4: 记录同步前的状态
+      # Step 4: 检查组织仓库是否有新提交
       # ============================================================
-      - name: 记录组织仓库当前状态
-        id: pre_sync_state
+      - name: 检查冲突
+        id: check_conflict
         run: |
           cd target
-          echo "target_head=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-          echo "target_commit_count=$(git rev-list --count HEAD)" >> $GITHUB_OUTPUT
-
-      # ============================================================
-      # Step 5: 执行同步（使用 force-with-lease 安全推送）
-      # ============================================================
-      - name: 执行同步
-        id: sync_step
-        continue-on-error: true
-        run: |
-          cd source
-          git remote set-url origin https://${{ secrets.PERSONAL_TOKEN }}@github.com/TengYve-Technology/FriendlyToolsPage-org.git
-          git push --force-with-lease origin main
-          echo "✅ 同步成功"
-          echo "sync_success=true" >> $GITHUB_OUTPUT
-
-      # ============================================================
-      # Step 6: 如果同步失败，检查是否是因为远程有新提交
-      # ============================================================
-      - name: 检查同步失败原因
-        id: check_failure
-        if: steps.sync_step.outcome == 'failure'
-        run: |
-          cd target
-          git fetch origin
-          REMOTE_MAIN=$(git rev-parse origin/main)
-          PREV_HEAD="${{ steps.pre_sync_state.outputs.target_head }}"
           
-          if [ "$REMOTE_MAIN" != "$PREV_HEAD" ]; then
+          # 获取当前远程 HEAD
+          REMOTE_HEAD=$(git rev-parse HEAD)
+          
+          # 获取源仓库 HEAD（个人仓库的最新状态）
+          cd ../source
+          SOURCE_HEAD=$(git rev-parse HEAD)
+          
+          # 如果两个 HEAD 相同，直接覆盖（其实没变化）
+          if [ "$REMOTE_HEAD" == "$SOURCE_HEAD" ]; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "两个仓库 HEAD 相同，无需同步"
+            exit 0
+          fi
+          
+          # 检查组织仓库的 HEAD 是否在个人仓库的历史中
+          cd ../target
+          if git merge-base --is-ancestor HEAD ../source/HEAD 2>/dev/null; then
+            # 组织仓库的提交在个人仓库历史中 → 没有新提交
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "组织仓库没有新提交，可以安全覆盖"
+          else
+            # 组织仓库有个人仓库没有的提交 → 有冲突
             echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "检测到远程有新提交，产生冲突"
-            NEW_COMMITS=$(git log --oneline $PREV_HEAD..$REMOTE_MAIN --no-merges 2>/dev/null || echo "")
+            
+            # 获取组织仓库独有的提交列表
+            cd ../target
+            NEW_COMMITS=$(git log --oneline ../source/HEAD..HEAD --no-merges 2>/dev/null || echo "")
             if [ -n "$NEW_COMMITS" ]; then
               echo "new_commits<<EOF" >> $GITHUB_OUTPUT
               echo "$NEW_COMMITS" >> $GITHUB_OUTPUT
               echo "EOF" >> $GITHUB_OUTPUT
             fi
-          else
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "同步失败但不是因为远程有新提交"
+            echo "检测到组织仓库有新提交，数量：$(echo "$NEW_COMMITS" | wc -l)"
           fi
 
       # ============================================================
-      # Step 7: 如果有冲突，创建 Issue 通知
+      # Step 5: 如果有冲突，创建 Issue 并停止
       # ============================================================
-      - name: 创建冲突通知 Issue
-        if: steps.check_failure.outputs.has_changes == 'true'
+      - name: 创建冲突 Issue
+        if: steps.check_conflict.outputs.has_changes == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PERSONAL_TOKEN }}
           script: |
-            const newCommits = `${{ steps.check_failure.outputs.new_commits || '（无法获取具体提交列表，请手动检查）' }}`;
+            const newCommits = `${{ steps.check_conflict.outputs.new_commits || '（无法获取提交列表）' }}`;
             const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
             const runUrl = `${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
             const triggerType = '${{ github.event_name }}' === 'schedule' ? '⏰ 定时任务' : '👆 手动触发';
 
             const issueBody = `
-            ## ⚠️ 同步冲突检测报告
+            ## ⚠️ 检测到组织仓库有新提交，同步已暂停
 
-            组织仓库 **FriendlyToolsPage-org** 在本次同步周期内检测到了新的提交，与个人仓库 **FriendlyToolsPage** 的代码产生冲突。
+            组织仓库 **FriendlyToolsPage-org** 在本次同步周期内检测到了新的提交，为防止数据丢失，**强制覆盖操作已停止**。
 
             ---
 
-            ### 📝 新提交记录（自上次同步以来）
+            ### 📝 新提交记录（组织仓库独有）
             \`\`\`
             ${newCommits}
             \`\`\`
@@ -116,10 +108,16 @@ jobs:
 
             ### 🔧 请选择处理方式
 
-            1. **保留这些提交** → 请手动将组织仓库的变更合并到个人仓库中，然后关闭此 Issue
-               - 操作步骤：将组织仓库的最新代码 pull 到个人仓库，解决冲突后 push
-            2. **丢弃这些提交** → 强制将组织仓库重置为个人仓库的最新状态
-               - 操作步骤：在组织仓库执行 \`git reset --hard <个人仓库的commit>\` 并 push
+            1. **保留这些提交** → 手动合并到个人仓库，然后关闭此 Issue
+            2. **丢弃这些提交** → 强制覆盖组织仓库（执行下面的命令）
+
+            **丢弃提交的命令：**
+            \`\`\`bash
+            # 在组织仓库执行
+            git fetch origin
+            git reset --hard <个人仓库的commit SHA>
+            git push --force origin main
+            \`\`\`
 
             ---
 
@@ -130,10 +128,10 @@ jobs:
 
             ---
 
-            *此 Issue 由 GitHub Actions 自动创建，关闭后将自动恢复同步流程。*
+            *此 Issue 由 GitHub Actions 自动创建，关闭后下次同步将自动恢复。*
             `;
 
-            const issue = await github.rest.issues.create({
+            await github.rest.issues.create({
               owner: 'TengYve-Technology',
               repo: 'FriendlyToolsPage-org',
               title: `[自动] ⚠️ 同步冲突 - ${new Date().toISOString().slice(0, 10)}`,
@@ -141,26 +139,26 @@ jobs:
               labels: ['sync-conflict', 'auto-generated', '需要人工处理']
             });
 
-            console.log(`✅ Issue 已创建：${issue.data.html_url}`);
-
-            await github.rest.issues.createComment({
-              owner: 'TengYve-Technology',
-              repo: 'FriendlyToolsPage-org',
-              issue_number: issue.data.number,
-              body: `@TengYve-Technology/owners 请查看此冲突报告并处理 🙏\n\n如需重置组织仓库到个人仓库的最新状态，请在确认后关闭此 Issue，下次同步将自动恢复。`
-            });
+      # ============================================================
+      # Step 6: 强制覆盖（无冲突时执行）
+      # ============================================================
+      - name: 强制覆盖同步
+        if: steps.check_conflict.outputs.has_changes == 'false'
+        run: |
+          cd source
+          git remote set-url origin https://${{ secrets.PERSONAL_TOKEN }}@github.com/TengYve-Technology/FriendlyToolsPage-org.git
+          git push --force origin main
+          echo "✅ 强制覆盖同步完成"
 
       # ============================================================
-      # Step 8: 同步成功，清理旧冲突 Issue
+      # Step 7: 如果有旧冲突 Issue，添加评论提示
       # ============================================================
-      - name: 同步成功 - 清理旧冲突 Issue
-        if: steps.sync_step.outputs.sync_success == 'true'
+      - name: 更新旧冲突 Issue
+        if: steps.check_conflict.outputs.has_changes == 'false'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PERSONAL_TOKEN }}
           script: |
-            const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-            
             const issues = await github.rest.issues.listForRepo({
               owner: 'TengYve-Technology',
               repo: 'FriendlyToolsPage-org',
@@ -174,21 +172,7 @@ jobs:
                   owner: 'TengYve-Technology',
                   repo: 'FriendlyToolsPage-org',
                   issue_number: issue.number,
-                  body: `✅ **同步已成功恢复**（${now}）\n\n之前的冲突已解决或已被覆盖，此 Issue 现在可以关闭了。`
+                  body: `✅ **同步已恢复**（${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}）\n\n冲突已解决，此 Issue 可以关闭了。`
                 });
-                console.log(`💬 已在 Issue #${issue.number} 中添加评论`);
               }
             }
-
-      # ============================================================
-      # Step 9: 其他错误处理
-      # ============================================================
-      - name: 同步失败 - 其他错误警告
-        if: steps.sync_step.outcome == 'failure' && steps.check_failure.outputs.has_changes != 'true'
-        run: |
-          echo "⚠️ 同步失败，但原因不是远程有新提交"
-          echo "请检查："
-          echo "1. PERSONAL_TOKEN 是否有效"
-          echo "2. 网络连接是否正常"
-          echo "3. 仓库是否存在"
-          exit 1
