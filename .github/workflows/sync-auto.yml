@@ -1,4 +1,4 @@
-name: 从个人仓库同步（强制覆盖）
+name: 自动同步（检测冲突）
 
 on:
   schedule:
@@ -13,74 +13,50 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      # ============================================================
-      # Step 1: 配置 Git
-      # ============================================================
       - name: 配置 Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      # ============================================================
-      # Step 2: 克隆个人仓库（源）
-      # ============================================================
       - name: 克隆个人仓库
         run: |
           git clone https://${{ secrets.PERSONAL_TOKEN }}@github.com/YLZ2013git/FriendlyToolsPage.git source
 
-      # ============================================================
-      # Step 3: 克隆组织仓库（目标）
-      # ============================================================
       - name: 克隆组织仓库
         run: |
           git clone https://${{ secrets.PERSONAL_TOKEN }}@github.com/TengYve-Technology/FriendlyToolsPage-org.git target
 
-      # ============================================================
-      # Step 4: 检查组织仓库是否有新提交
-      # ============================================================
       - name: 检查冲突
         id: check_conflict
         run: |
           cd target
-          
-          # 获取当前远程 HEAD
           REMOTE_HEAD=$(git rev-parse HEAD)
           
-          # 获取源仓库 HEAD（个人仓库的最新状态）
           cd ../source
           SOURCE_HEAD=$(git rev-parse HEAD)
           
-          # 如果两个 HEAD 相同，直接覆盖（其实没变化）
           if [ "$REMOTE_HEAD" == "$SOURCE_HEAD" ]; then
             echo "has_changes=false" >> $GITHUB_OUTPUT
             echo "两个仓库 HEAD 相同，无需同步"
             exit 0
           fi
           
-          # 检查组织仓库的 HEAD 是否在个人仓库的历史中
           cd ../target
           if git merge-base --is-ancestor HEAD ../source/HEAD 2>/dev/null; then
-            # 组织仓库的提交在个人仓库历史中 → 没有新提交
             echo "has_changes=false" >> $GITHUB_OUTPUT
             echo "组织仓库没有新提交，可以安全覆盖"
           else
-            # 组织仓库有个人仓库没有的提交 → 有冲突
             echo "has_changes=true" >> $GITHUB_OUTPUT
             
-            # 获取组织仓库独有的提交列表
-            cd ../target
             NEW_COMMITS=$(git log --oneline ../source/HEAD..HEAD --no-merges 2>/dev/null || echo "")
             if [ -n "$NEW_COMMITS" ]; then
               echo "new_commits<<EOF" >> $GITHUB_OUTPUT
               echo "$NEW_COMMITS" >> $GITHUB_OUTPUT
               echo "EOF" >> $GITHUB_OUTPUT
             fi
-            echo "检测到组织仓库有新提交，数量：$(echo "$NEW_COMMITS" | wc -l)"
+            echo "检测到组织仓库有新提交"
           fi
 
-      # ============================================================
-      # Step 5: 如果有冲突，创建 Issue 并停止
-      # ============================================================
       - name: 创建冲突 Issue
         if: steps.check_conflict.outputs.has_changes == 'true'
         uses: actions/github-script@v7
@@ -90,7 +66,6 @@ jobs:
             const newCommits = `${{ steps.check_conflict.outputs.new_commits || '（无法获取提交列表）' }}`;
             const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
             const runUrl = `${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
-            const triggerType = '${{ github.event_name }}' === 'schedule' ? '⏰ 定时任务' : '👆 手动触发';
 
             const issueBody = `
             ## ⚠️ 检测到组织仓库有新提交，同步已暂停
@@ -109,26 +84,17 @@ jobs:
             ### 🔧 请选择处理方式
 
             1. **保留这些提交** → 手动合并到个人仓库，然后关闭此 Issue
-            2. **丢弃这些提交** → 强制覆盖组织仓库（执行下面的命令）
-
-            **丢弃提交的命令：**
-            \`\`\`bash
-            # 在组织仓库执行
-            git fetch origin
-            git reset --hard <个人仓库的commit SHA>
-            git push --force origin main
-            \`\`\`
+            2. **丢弃这些提交** → 使用手动强制覆盖 Action
 
             ---
 
             ### 📅 检测信息
             - 检测时间：${now}
-            - 触发方式：${triggerType}
             - 相关执行：${runUrl}
 
             ---
 
-            *此 Issue 由 GitHub Actions 自动创建，关闭后下次同步将自动恢复。*
+            *此 Issue 由 GitHub Actions 自动创建，关闭后下次自动同步将恢复。*
             `;
 
             await github.rest.issues.create({
@@ -136,12 +102,9 @@ jobs:
               repo: 'FriendlyToolsPage-org',
               title: `[自动] ⚠️ 同步冲突 - ${new Date().toISOString().slice(0, 10)}`,
               body: issueBody,
-              labels: ['sync-conflict', 'auto-generated', '需要人工处理']
+              labels: ['sync-conflict', 'auto-generated']
             });
 
-      # ============================================================
-      # Step 6: 强制覆盖（无冲突时执行）
-      # ============================================================
       - name: 强制覆盖同步
         if: steps.check_conflict.outputs.has_changes == 'false'
         run: |
@@ -149,30 +112,3 @@ jobs:
           git remote set-url origin https://${{ secrets.PERSONAL_TOKEN }}@github.com/TengYve-Technology/FriendlyToolsPage-org.git
           git push --force origin main
           echo "✅ 强制覆盖同步完成"
-
-      # ============================================================
-      # Step 7: 如果有旧冲突 Issue，添加评论提示
-      # ============================================================
-      - name: 更新旧冲突 Issue
-        if: steps.check_conflict.outputs.has_changes == 'false'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.PERSONAL_TOKEN }}
-          script: |
-            const issues = await github.rest.issues.listForRepo({
-              owner: 'TengYve-Technology',
-              repo: 'FriendlyToolsPage-org',
-              labels: 'sync-conflict',
-              state: 'open'
-            });
-
-            if (issues.data.length > 0) {
-              for (const issue of issues.data) {
-                await github.rest.issues.createComment({
-                  owner: 'TengYve-Technology',
-                  repo: 'FriendlyToolsPage-org',
-                  issue_number: issue.number,
-                  body: `✅ **同步已恢复**（${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}）\n\n冲突已解决，此 Issue 可以关闭了。`
-                });
-              }
-            }
